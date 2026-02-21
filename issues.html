@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NationStates Issue Editor with Macros</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #cccccc;
+            --section-bg: #f9f9f9;
+            --button-bg: #4361ee;
+            --button-hover: #3a56d4;
+            --macro-bg: #e8f4fd;
+            --macro-hover: #d1e9fb;
+            --header-bg: #2c3e50;
+            --header-text: #ffffff;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --accent: #9d4edd;
+            --warning: #f39c12;
+            --advanced-bg: #fffde7;
+            --advanced-border: #ffd54f;
+            --must-have: #27ae60;
+            --must-not: #e74c3c;
+        }
+
+        .dark-mode {
+            --bg-color: #121212;
+            --text-color: #f0f0f0;
+            --border-color: #444444;
+            --section-bg: #1e1e1e;
+            --button-bg: #5a7fb5;
+            --button-hover: #4a6fa5;
+            --macro-bg: #2c3e50;
+            --macro-hover: #34495e;
+            --header-bg: #1c2833;
+            --header-text: #f0f0f0;
+            --advanced-bg: #2d2d00;
+            --advanced-border: #665c00;
+            --must-have: #27ae60;
+            --must-not: #e74c3c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--accent), var(--button-bg));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--button-bg);
+            transition: .4s;
+            border-radius: 34px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "☀️";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            font-size: 12px;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+
+        input:checked + .slider:before {
+            content: "🌙";
+            transform: translateX(30px);
+        }
+
+        .editor-section {
+            background-color: var(--section-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .editor-section h2 {
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--button-bg);
+            font-size: 1.4rem;
+            color: var(--button-bg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .editor-section h2 i {
+            color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.2);
+        }
+
+        textarea {
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .validity-textbox {
+            margin-top: 10px;
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            max-height: 400px;
+            padding-right: 5px;
+        }
+
+        .choice-box {
+            background-color: var(--section-bg);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .choice-box:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .choice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .choice-number {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--button-bg);
+        }
+
+        .remove-choice {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .remove-choice:hover {
+            background-color: #c0392b;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .add-choice-btn {
+            background-color: var(--success);
+        }
+
+        .add-choice-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .import-btn {
+            background-color: var(--accent);
+        }
+
+        .import-btn:hover {
+            background-color: #8a4ec7;
+        }
+
+        .export-btn {
+            background-color: var(--warning);
+            color: #333;
+        }
+
+        .export-btn:hover {
+            background-color: #e6b32a;
+        }
+
+        .validity-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .must-have-btn {
+            background-color: var(--must-have);
+        }
+
+        .must-not-btn {
+            background-color: var(--must-not);
+        }
+
+        .validity-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .validity-tag {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .validity-tag.must-have {
+            background-color: rgba(39, 174, 96, 0.2);
+            border: 1px solid var(--must-have);
+            color: var(--must-have);
+        }
+
+        .validity-tag.must-not {
+            background-color: rgba(231, 76, 60, 0.2);
+            border: 1px solid var(--must-not);
+            color: var(--must-not);
+        }
+
+        .remove-tag {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 0;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .remove-tag:hover {
+            opacity: 0.8;
+        }
+
+        .macros-panel {
+            background-color: var(--section-bg);
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            height: calc(100vh - 120px);
+            position: sticky;
+            top: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .macros-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .macros-category {
+            margin-bottom: 20px;
+        }
+
+        .macros-category h3 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            color: var(--accent);
+            border-left: 4px solid var(--accent);
+            padding-left: 8px;
+        }
+
+        .macros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .macro-btn {
+            padding: 8px 12px;
+            background-color: var(--macro-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .macro-btn:hover {
+            background-color: var(--macro-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .macro-btn:active {
+            transform: translateY(0);
+        }
+
+        .active-field {
+            box-shadow: 0 0 0 2px var(--accent);
+            border-color: var(--accent);
+        }
+
+        .example-ghost {
+            color: #888888;
+            font-style: italic;
+        }
+
+        .advanced-section {
+            grid-column: 1 / -1;
+            background-color: var(--advanced-bg);
+            border: 2px solid var(--advanced-border);
+        }
+
+        .advanced-section h2 {
+            color: var(--warning);
+            border-bottom-color: var(--warning);
+        }
+
+        .advanced-mode-textarea {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            min-height: 300px;
+            background-color: var(--bg-color);
+            width: 100%;
+        }
+
+        .advanced-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .advanced-example {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            margin-top: 5px;
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                overflow: auto;
+            }
+            
+            .macros-panel {
+                position: static;
+                height: auto;
+                max-height: 400px;
+            }
+            
+            .macros-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        /* Snackbar */
+        .snackbar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background-color: var(--danger);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .snackbar.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .snackbar.success {
+            background-color: var(--success);
+        }
+
+        /* Custom scrollbar for main content */
+        .main-content {
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--section-bg);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--button-bg);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--button-hover);
+        }
+
+        /* Special scrollbar for macros panel */
+        .macros-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .macros-panel::-webkit-scrollbar-track {
+            background: var(--macro-bg);
+            border-radius: 4px;
+        }
+
+        .macros-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        .macros-panel::-webkit-scrollbar-thumb:hover {
+            background: var(--button-hover);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NationStates Issue Editor</h1>
+            <div class="mode-toggle">
+                <label class="switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </header>
+
+        <div class="main-content" style="grid-column: 1; overflow-y: auto; display: flex; flex-direction: column;">
+            <section class="editor-section">
+                <h2><i class="fas fa-edit"></i> Issue Details</h2>
+                <div class="form-group">
+                    <label for="issue-name">Title/Name:</label>
+                    <input type="text" id="issue-name" placeholder="e.g., 'Any Witch Way Spells Disaster'">
+                </div>
+                
+                <div class="form-group">
+                    <label for="issue-description">Description:</label>
+                    <textarea id="issue-description" placeholder="e.g., 'Concerned that you're only one person, and are facing an intense workload, your advisors have been heatedly arguing about how many issues you should face each day.'"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Issue Validities:</label>
+                    <div class="validity-buttons">
+                        <button class="must-have-btn" id="add-must-have"><i class="fas fa-plus"></i> Add Must Have</button>
+                        <button class="must-not-btn" id="add-must-not"><i class="fas fa-minus"></i> Add Must Not Have</button>
+                    </div>
+                    <div id="issue-validity-tags" class="validity-tags">
+                        <!-- Validity tags will appear here -->
+                    </div>
+                </div>
+            </section>
+
+            <section class="editor-section">
+                <h2><i class="fas fa-list-ol"></i> Issue Choices</h2>
+                <div class="choices-container" id="choices-container">
+                    <!-- Choices will be dynamically added here -->
+                </div>
+                
+                <div class="buttons">
+                    <button class="add-choice-btn" id="add-choice"><i class="fas fa-plus"></i> Add Choice</button>
+                </div>
+            </section>
+
+            <section class="editor-section advanced-section">
+                <h2><i class="fas fa-code"></i> Advanced Mode</h2>
+                <div class="form-group">
+                    <label for="advanced-mode">Advanced Text Format:</label>
+                    <textarea id="advanced-mode" class="advanced-mode-textarea" placeholder="Paste or edit in advanced format..."></textarea>
+                    <div class="advanced-example">Format: [title]... [desc]... [validity]... [option]... [effect]... (repeat for each option)</div>
+                </div>
+                
+                <div class="advanced-controls">
+                    <div class="buttons">
+                        <button class="import-btn" id="import-advanced"><i class="fas fa-download"></i> Import from Advanced</button>
+                        <button class="export-btn" id="export-advanced"><i class="fas fa-upload"></i> Export to Advanced</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="macros-panel">
+            <h2>Macros</h2>
+            <p>Click any macro to insert into active field</p>
+            <div class="macros-content">
+                <div class="macros-category">
+                    <h3>Names & Pronouns</h3>
+                    <div class="macros-grid">
+                        <button class="macro-btn" data-macro="@@RANDOMNAME@@">@@RANDOMNAME@@</button>
+                        <button class="macro-btn" data-macro="@@RANDOMNAMEMALE@@">@@RANDOMNAMEMALE@@</button>
+                        <button class="macro-btn" data-macro="@@RANDOMNAMEFEMALE@@">@@RANDOMNAMEFEMALE@@</button>
+                        <button class="macro-btn" data-macro="@@RANDOMFIRSTNAME@@">@@RANDOMFIRSTNAME@@</button>
+                        <button class="macro-btn" data-macro="@@RANDOMLASTNAME@@">@@RANDOMLASTNAME@@</button>
+                        <button class="macro-btn" data-macro="@@HE@@">@@HE@@</button>
+                        <button class="macro-btn" data-macro="@@HIM@@">@@HIM@@</button>
+                        <button class="macro-btn" data-macro="@@HIS@@">@@HIS@@</button>
+                        <button class="macro-btn" data-macro="@@HERS@@">@@HERS@@</button>
+                        <button class="macro-btn" data-macro="@@MAN@@">@@MAN@@</button>
+                        <button class="macro-btn" data-macro="@@BOY@@">@@BOY@@</button>
+                    </div>
+                </div>
+                
+                <div class="macros-category">
+                    <h3>Player Defined Fields</h3>
+                    <div class="macros-grid">
+                        <button class="macro-btn" data-macro="@@NAME@@">@@NAME@@</button>
+                        <button class="macro-btn" data-macro="@@REGION@@">@@REGION@@</button>
+                        <button class="macro-btn" data-macro="@@TYPE@@">@@TYPE@@</button>
+                        <button class="macro-btn" data-macro="@@ANIMAL@@">@@ANIMAL@@</button>
+                        <button class="macro-btn" data-macro="@@CURRENCY@@">@@CURRENCY@@</button>
+                        <button class="macro-btn" data-macro="@@SLOGAN@@">@@SLOGAN@@</button>
+                        <button class="macro-btn" data-macro="@@DEMONYM@@">@@DEMONYM@@</button>
+                        <button class="macro-btn" data-macro="@@CAPITAL@@">@@CAPITAL@@</button>
+                        <button class="macro-btn" data-macro="@@LEADER@@">@@LEADER@@</button>
+                        <button class="macro-btn" data-macro="@@FAITH@@">@@FAITH@@</button>
+                        <button class="macro-btn" data-macro="@@NAMEINITIALS@@">@@NAMEINITIALS@@</button>
+                        <button class="macro-btn" data-macro="@@DEMONYMINITIALS@@">@@DEMONYMINITIALS@@</button>
+                    </div>
+                </div>
+                
+                <div class="macros-category">
+                    <h3>Other Macros</h3>
+                    <div class="macros-grid">
+                        <button class="macro-btn" data-macro="@@MAJORINDUSTRY@@">@@MAJORINDUSTRY@@</button>
+                        <button class="macro-btn" data-macro="@@POPULATION@@">@@POPULATION@@</button>
+                        <button class="macro-btn" data-macro="@@DESCRIBEPOPULATION@@">@@DESCRIBEPOPULATION@@</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Snackbar -->
+    <div id="snackbar" class="snackbar">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="snackbar-text"></span>
+    </div>
+
+    <script>
+        // Theme toggle with emoji switch
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        
+        // Check for saved theme or prefer-color-scheme
+        const savedTheme = localStorage.getItem('theme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-mode');
+            themeToggle.checked = true;
+        }
+        
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        
+        // Track active field for macro insertion
+        let activeField = null;
+        
+        // Highlight active field
+        document.querySelectorAll('input[type="text"], textarea').forEach(field => {
+            field.addEventListener('focus', function() {
+                // Remove active class from all fields
+                document.querySelectorAll('input[type="text"], textarea').forEach(f => {
+                    f.classList.remove('active-field');
+                });
+                
+                // Add active class to current field
+                this.classList.add('active-field');
+                activeField = this;
+            });
+        });
+        
+        // Macro insertion
+        document.querySelectorAll('.macro-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const macro = this.getAttribute('data-macro');
+                
+                if (activeField) {
+                    // Insert macro at cursor position
+                    const start = activeField.selectionStart;
+                    const end = activeField.selectionEnd;
+                    const text = activeField.value;
+                    
+                    activeField.value = text.substring(0, start) + macro + text.substring(end);
+                    
+                    // Move cursor after the inserted macro
+                    activeField.selectionStart = activeField.selectionEnd = start + macro.length;
+                    activeField.focus();
+                } else {
+                    // If no field is active, show a message
+                    showSnackbar('Click on a text field first to insert a macro.', false);
+                }
+            });
+        });
+        
+        // Choice management
+        const choicesContainer = document.getElementById('choices-container');
+        const addChoiceBtn = document.getElementById('add-choice');
+        let choiceCount = 0;
+        
+        // Store validity tags
+        let issueValidityTags = [];
+        
+        // Function to show snackbar
+        function showSnackbar(message, isSuccess = false) {
+            const snackbar = document.getElementById('snackbar');
+            const snackbarText = document.getElementById('snackbar-text');
+            
+            snackbarText.textContent = message;
+            snackbar.classList.remove('success');
+            
+            if (isSuccess) {
+                snackbar.classList.add('success');
+            }
+            
+            snackbar.classList.add('show');
+            
+            setTimeout(() => {
+                snackbar.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Function to create a new choice box
+        function createChoiceBox(isFirst = false, optionText = '', falloutText = '', validityTags = []) {
+            choiceCount++;
+            const choiceId = `choice-${choiceCount}`;
+            
+            const choiceBox = document.createElement('div');
+            choiceBox.className = 'choice-box';
+            choiceBox.id = choiceId;
+            
+            // Set different placeholder examples for the first choice
+            const optionPlaceholder = isFirst && !optionText ? 
+                "e.g., 'I've been looking at some numbers, and citizens are upset about how high their taxes are! Now, in order to avoid cutting the services they depend on, how about we stop spending so much on foreign aid? If we cut foreign aid, we can cut taxes, and our people can have their cake and eat it too!'" :
+                "Enter option text...";
+            
+            const falloutPlaceholder = isFirst && !falloutText ? 
+                "e.g., 'citizens celebrate when foreigners go hungry'" :
+                "Enter effect line...";
+            
+            // Create validity tags HTML
+            let validityTagsHTML = '';
+            validityTags.forEach(tag => {
+                validityTagsHTML += `
+                    <div class="validity-tag ${tag.type === 'must' ? 'must-have' : 'must-not'}">
+                        ${tag.type === 'must' ? 'Must have:' : 'Must not have:'} ${tag.condition}
+                        <button class="remove-tag" onclick="removeValidityTag('choice', ${choiceCount}, '${tag.id}')">&times;</button>
+                    </div>
+                `;
+            });
+            
+            choiceBox.innerHTML = `
+                <div class="choice-header">
+                    <div class="choice-number">Choice ${choiceCount}</div>
+                    <button class="remove-choice" data-choice="${choiceId}">Remove</button>
+                </div>
+                <div class="form-group">
+                    <label for="choice-text-${choiceCount}">Option Text:</label>
+                    <textarea id="choice-text-${choiceCount}" placeholder="${optionPlaceholder}">${optionText}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="choice-fallout-${choiceCount}">Fallout/Effect:</label>
+                    <input type="text" id="choice-fallout-${choiceCount}" placeholder="${falloutPlaceholder}" value="${falloutText}">
+                </div>
+                <div class="form-group">
+                    <label>Choice Validities:</label>
+                    <div class="validity-buttons">
+                        <button class="must-have-btn" onclick="addChoiceValidityTag(${choiceCount}, 'must')"><i class="fas fa-plus"></i> Add Must Have</button>
+                        <button class="must-not-btn" onclick="addChoiceValidityTag(${choiceCount}, 'mustnot')"><i class="fas fa-minus"></i> Add Must Not Have</button>
+                    </div>
+                    <div id="choice-validity-tags-${choiceCount}" class="validity-tags">
+                        ${validityTagsHTML}
+                    </div>
+                </div>
+            `;
+            
+            choicesContainer.appendChild(choiceBox);
+            
+            // Store validity tags for this choice
+            if (!window.choiceValidityTags) {
+                window.choiceValidityTags = {};
+            }
+            window.choiceValidityTags[choiceCount] = validityTags;
+            
+            // Add active field tracking for new inputs
+            choiceBox.querySelectorAll('input[type="text"], textarea').forEach(field => {
+                field.addEventListener('focus', function() {
+                    document.querySelectorAll('input[type="text"], textarea').forEach(f => {
+                        f.classList.remove('active-field');
+                    });
+                    
+                    this.classList.add('active-field');
+                    activeField = this;
+                });
+            });
+            
+            // Add remove button functionality
+            const removeBtn = choiceBox.querySelector('.remove-choice');
+            removeBtn.addEventListener('click', function() {
+                const choiceIdToRemove = this.getAttribute('data-choice');
+                const choiceToRemove = document.getElementById(choiceIdToRemove);
+                
+                if (choiceToRemove) {
+                    // Get the choice number
+                    const choiceNum = parseInt(choiceIdToRemove.split('-')[1]);
+                    
+                    // Remove from stored validity tags
+                    if (window.choiceValidityTags && window.choiceValidityTags[choiceNum]) {
+                        delete window.choiceValidityTags[choiceNum];
+                    }
+                    
+                    choiceToRemove.remove();
+                    updateChoiceNumbers();
+                }
+            });
+            
+            // Scroll to the new choice
+            choiceBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // Function to update choice numbers after removal
+        function updateChoiceNumbers() {
+            const choiceBoxes = document.querySelectorAll('.choice-box');
+            choiceCount = choiceBoxes.length;
+            
+            // Create a new object for validity tags with updated numbers
+            const newChoiceValidityTags = {};
+            
+            choiceBoxes.forEach((box, index) => {
+                const oldChoiceNumber = parseInt(box.id.split('-')[1]);
+                const newChoiceNumber = index + 1;
+                
+                // Update the box ID and number display
+                box.id = `choice-${newChoiceNumber}`;
+                const choiceNumberElement = box.querySelector('.choice-number');
+                choiceNumberElement.textContent = `Choice ${newChoiceNumber}`;
+                
+                // Update all IDs and labels in the choice box
+                const textarea = box.querySelector('textarea');
+                const falloutInput = box.querySelector('input[id*="fallout"]');
+                const validityTagsContainer = box.querySelector('.validity-tags');
+                
+                // Update IDs
+                if (textarea) textarea.id = `choice-text-${newChoiceNumber}`;
+                if (falloutInput) falloutInput.id = `choice-fallout-${newChoiceNumber}`;
+                if (validityTagsContainer) validityTagsContainer.id = `choice-validity-tags-${newChoiceNumber}`;
+                
+                // Update labels
+                const textLabel = box.querySelector('label[for^="choice-text-"]');
+                const falloutLabel = box.querySelector('label[for^="choice-fallout-"]');
+                
+                if (textLabel) textLabel.setAttribute('for', `choice-text-${newChoiceNumber}`);
+                if (falloutLabel) falloutLabel.setAttribute('for', `choice-fallout-${newChoiceNumber}`);
+                
+                // Update remove button data attribute
+                const removeBtn = box.querySelector('.remove-choice');
+                if (removeBtn) removeBtn.setAttribute('data-choice', `choice-${newChoiceNumber}`);
+                
+                // Update validity buttons onclick handlers
+                const mustHaveBtn = box.querySelector('.must-have-btn');
+                const mustNotBtn = box.querySelector('.must-not-btn');
+                
+                if (mustHaveBtn) {
+                    mustHaveBtn.setAttribute('onclick', `addChoiceValidityTag(${newChoiceNumber}, 'must')`);
+                }
+                if (mustNotBtn) {
+                    mustNotBtn.setAttribute('onclick', `addChoiceValidityTag(${newChoiceNumber}, 'mustnot')`);
+                }
+                
+                // Update remove tag buttons
+                const removeTagBtns = box.querySelectorAll('.remove-tag');
+                removeTagBtns.forEach(btn => {
+                    const onclickAttr = btn.getAttribute('onclick');
+                    if (onclickAttr) {
+                        btn.setAttribute('onclick', onclickAttr.replace(`'choice', ${oldChoiceNumber},`, `'choice', ${newChoiceNumber},`));
+                    }
+                });
+                
+                // Copy validity tags to new object
+                if (window.choiceValidityTags && window.choiceValidityTags[oldChoiceNumber]) {
+                    newChoiceValidityTags[newChoiceNumber] = window.choiceValidityTags[oldChoiceNumber];
+                }
+            });
+            
+            // Update the global validity tags object
+            window.choiceValidityTags = newChoiceValidityTags;
+        }
+        
+        // Add initial choice with example placeholder
+        createChoiceBox(true);
+        
+        // Add choice button event listener
+        addChoiceBtn.addEventListener('click', () => createChoiceBox(false));
+        
+        // Initialize active field to the first textarea
+        document.querySelector('textarea').classList.add('active-field');
+        activeField = document.querySelector('textarea');
+        
+        // Validity tag management for issue
+        const addMustHaveBtn = document.getElementById('add-must-have');
+        const addMustNotBtn = document.getElementById('add-must-not');
+        const issueValidityTagsContainer = document.getElementById('issue-validity-tags');
+        
+        // Function to add a validity tag to the issue
+        function addIssueValidityTag(type) {
+            const condition = prompt(`Enter validity condition for ${type === 'must' ? 'must have' : 'must not have'}:`);
+            if (condition && condition.trim()) {
+                const tagId = Date.now().toString();
+                const tag = {
+                    id: tagId,
+                    type: type,
+                    condition: condition.trim()
+                };
+                
+                issueValidityTags.push(tag);
+                updateIssueValidityTagsDisplay();
+            }
+        }
+        
+        // Function to remove a validity tag from the issue
+        function removeIssueValidityTag(tagId) {
+            issueValidityTags = issueValidityTags.filter(tag => tag.id !== tagId);
+            updateIssueValidityTagsDisplay();
+        }
+        
+        // Function to update the issue validity tags display
+        function updateIssueValidityTagsDisplay() {
+            issueValidityTagsContainer.innerHTML = '';
+            
+            issueValidityTags.forEach(tag => {
+                const tagElement = document.createElement('div');
+                tagElement.className = `validity-tag ${tag.type === 'must' ? 'must-have' : 'must-not'}`;
+                tagElement.innerHTML = `
+                    ${tag.type === 'must' ? 'Must have:' : 'Must not have:'} ${tag.condition}
+                    <button class="remove-tag" onclick="removeIssueValidityTag('${tag.id}')">&times;</button>
+                `;
+                issueValidityTagsContainer.appendChild(tagElement);
+            });
+        }
+        
+        // Add event listeners for issue validity buttons
+        addMustHaveBtn.addEventListener('click', () => addIssueValidityTag('must'));
+        addMustNotBtn.addEventListener('click', () => addIssueValidityTag('mustnot'));
+        
+        // Function to add a validity tag to a choice
+        window.addChoiceValidityTag = function(choiceNumber, type) {
+            const condition = prompt(`Enter validity condition for ${type === 'must' ? 'must have' : 'must not have'}:`);
+            if (condition && condition.trim()) {
+                const tagId = Date.now().toString();
+                const tag = {
+                    id: tagId,
+                    type: type === 'must' ? 'must' : 'mustnot',
+                    condition: condition.trim()
+                };
+                
+                if (!window.choiceValidityTags[choiceNumber]) {
+                    window.choiceValidityTags[choiceNumber] = [];
+                }
+                
+                window.choiceValidityTags[choiceNumber].push(tag);
+                updateChoiceValidityTagsDisplay(choiceNumber);
+            }
+        };
+        
+        // Function to remove a validity tag from a choice
+        window.removeValidityTag = function(scope, choiceNumber, tagId) {
+            if (scope === 'issue') {
+                removeIssueValidityTag(tagId);
+            } else if (scope === 'choice') {
+                if (window.choiceValidityTags[choiceNumber]) {
+                    window.choiceValidityTags[choiceNumber] = window.choiceValidityTags[choiceNumber].filter(tag => tag.id !== tagId);
+                    updateChoiceValidityTagsDisplay(choiceNumber);
+                }
+            }
+        };
+        
+        // Function to update choice validity tags display
+        function updateChoiceValidityTagsDisplay(choiceNumber) {
+            const container = document.getElementById(`choice-validity-tags-${choiceNumber}`);
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (window.choiceValidityTags[choiceNumber]) {
+                window.choiceValidityTags[choiceNumber].forEach(tag => {
+                    const tagElement = document.createElement('div');
+                    tagElement.className = `validity-tag ${tag.type === 'must' ? 'must-have' : 'must-not'}`;
+                    tagElement.innerHTML = `
+                        ${tag.type === 'must' ? 'Must have:' : 'Must not have:'} ${tag.condition}
+                        <button class="remove-tag" onclick="removeValidityTag('choice', ${choiceNumber}, '${tag.id}')">&times;</button>
+                    `;
+                    container.appendChild(tagElement);
+                });
+            }
+        }
+        
+        // Advanced Mode Functions
+        const advancedModeTextarea = document.getElementById('advanced-mode');
+        const importAdvancedBtn = document.getElementById('import-advanced');
+        const exportAdvancedBtn = document.getElementById('export-advanced');
+        
+        // Export to Advanced Mode
+        exportAdvancedBtn.addEventListener('click', () => {
+            const title = document.getElementById('issue-name').value;
+            const description = document.getElementById('issue-description').value;
+            
+            let advancedText = `[title]${title}\n`;
+            advancedText += `[desc]${description}\n`;
+            
+            // Export issue validity tags
+            if (issueValidityTags.length > 0) {
+                const mustHaveTags = issueValidityTags.filter(tag => tag.type === 'must').map(tag => tag.condition);
+                const mustNotTags = issueValidityTags.filter(tag => tag.type === 'mustnot').map(tag => tag.condition);
+                
+                let validityText = '';
+                if (mustHaveTags.length > 0) {
+                    validityText += `Must have: ${mustHaveTags.join(', ')}`;
+                }
+                if (mustNotTags.length > 0) {
+                    if (validityText) validityText += '; ';
+                    validityText += `Must not have: ${mustNotTags.join(', ')}`;
+                }
+                
+                advancedText += `[validity]${validityText}\n`;
+            }
+            
+            // Get all choices
+            const choiceBoxes = document.querySelectorAll('.choice-box');
+            if (choiceBoxes.length > 0) {
+                advancedText += '\n';
+            }
+            
+            choiceBoxes.forEach((box, index) => {
+                const choiceNumber = index + 1;
+                const optionText = document.getElementById(`choice-text-${choiceNumber}`).value;
+                const effectText = document.getElementById(`choice-fallout-${choiceNumber}`).value;
+                
+                advancedText += `[option]${optionText}\n`;
+                advancedText += `[effect]${effectText}\n`;
+                
+                // Export choice validity tags
+                if (window.choiceValidityTags && window.choiceValidityTags[choiceNumber] && window.choiceValidityTags[choiceNumber].length > 0) {
+                    const mustHaveTags = window.choiceValidityTags[choiceNumber].filter(tag => tag.type === 'must').map(tag => tag.condition);
+                    const mustNotTags = window.choiceValidityTags[choiceNumber].filter(tag => tag.type === 'mustnot').map(tag => tag.condition);
+                    
+                    let validityText = '';
+                    if (mustHaveTags.length > 0) {
+                        validityText += `Must have: ${mustHaveTags.join(', ')}`;
+                    }
+                    if (mustNotTags.length > 0) {
+                        if (validityText) validityText += '; ';
+                        validityText += `Must not have: ${mustNotTags.join(', ')}`;
+                    }
+                    
+                    advancedText += `[validity]${validityText}\n`;
+                }
+                
+                // Add empty line between choices (but not after the last one)
+                if (index < choiceBoxes.length - 1) {
+                    advancedText += '\n';
+                }
+            });
+            
+            advancedModeTextarea.value = advancedText;
+            showSnackbar('Exported to Advanced Mode successfully!', true);
+        });
+        
+        // Import from Advanced Mode
+        importAdvancedBtn.addEventListener('click', () => {
+            const advancedText = advancedModeTextarea.value.trim();
+            
+            if (!advancedText) {
+                showSnackbar('Advanced Mode text is empty.', false);
+                return;
+            }
+            
+            // Parse the advanced text
+            const lines = advancedText.split('\n');
+            let currentSection = '';
+            let currentText = '';
+            
+            let title = '';
+            let description = '';
+            let issueValidityText = '';
+            
+            const choices = [];
+            let currentChoice = {option: '', effect: '', validity: ''};
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                if (line.startsWith('[') && line.endsWith(']')) {
+                    // Save previous section content
+                    if (currentSection && currentText.trim()) {
+                        switch(currentSection) {
+                            case 'title':
+                                title = currentText.trim();
+                                break;
+                            case 'desc':
+                                description = currentText.trim();
+                                break;
+                            case 'validity':
+                                if (choices.length === 0) {
+                                    // Issue validity
+                                    issueValidityText = currentText.trim();
+                                } else {
+                                    // Choice validity
+                                    currentChoice.validity = currentText.trim();
+                                }
+                                break;
+                            case 'option':
+                                currentChoice.option = currentText.trim();
+                                break;
+                            case 'effect':
+                                currentChoice.effect = currentText.trim();
+                                // Finish this choice
+                                choices.push({...currentChoice});
+                                currentChoice = {option: '', effect: '', validity: ''};
+                                break;
+                        }
+                    }
+                    
+                    // Start new section
+                    currentSection = line.substring(1, line.length - 1).toLowerCase();
+                    currentText = '';
+                } else {
+                    // Append to current section text
+                    if (currentText) {
+                        currentText += '\n' + line;
+                    } else {
+                        currentText = line;
+                    }
+                }
+            }
+            
+            // Handle the last section
+            if (currentSection && currentText.trim()) {
+                switch(currentSection) {
+                    case 'title':
+                        title = currentText.trim();
+                        break;
+                    case 'desc':
+                        description = currentText.trim();
+                        break;
+                    case 'validity':
+                        if (choices.length === 0) {
+                            issueValidityText = currentText.trim();
+                        } else {
+                            currentChoice.validity = currentText.trim();
+                        }
+                        break;
+                    case 'option':
+                        currentChoice.option = currentText.trim();
+                        break;
+                    case 'effect':
+                        currentChoice.effect = currentText.trim();
+                        choices.push({...currentChoice});
+                        break;
+                }
+            }
+            
+            // Check if number of choices matches
+            const currentChoiceCount = document.querySelectorAll('.choice-box').length;
+            
+            if (choices.length !== currentChoiceCount) {
+                showSnackbar(`Cannot import: Found ${choices.length} choices in Advanced Mode but there are ${currentChoiceCount} choice boxes. Please adjust the number of choice boxes first.`, false);
+                return;
+            }
+            
+            // Update the form
+            document.getElementById('issue-name').value = title;
+            document.getElementById('issue-description').value = description;
+            
+            // Parse and set issue validity tags
+            issueValidityTags = [];
+            if (issueValidityText) {
+                parseValidityText(issueValidityText, 'issue');
+            }
+            updateIssueValidityTagsDisplay();
+            
+            // Update choices
+            choices.forEach((choice, index) => {
+                const choiceNumber = index + 1;
+                const optionTextarea = document.getElementById(`choice-text-${choiceNumber}`);
+                const falloutInput = document.getElementById(`choice-fallout-${choiceNumber}`);
+                
+                if (optionTextarea) optionTextarea.value = choice.option;
+                if (falloutInput) falloutInput.value = choice.effect;
+                
+                // Parse and set choice validity tags
+                if (window.choiceValidityTags) {
+                    window.choiceValidityTags[choiceNumber] = [];
+                }
+                
+                if (choice.validity) {
+                    parseValidityText(choice.validity, 'choice', choiceNumber);
+                }
+                
+                updateChoiceValidityTagsDisplay(choiceNumber);
+            });
+            
+            showSnackbar('Imported from Advanced Mode successfully!', true);
+        });
+        
+        // Function to parse validity text
+        function parseValidityText(validityText, scope, choiceNumber = null) {
+            const tags = [];
+            
+            // Split by semicolon to separate "Must have" and "Must not have" sections
+            const sections = validityText.split(';').map(s => s.trim());
+            
+            sections.forEach(section => {
+                if (section.toLowerCase().startsWith('must have:')) {
+                    const conditions = section.substring(10).trim().split(',').map(c => c.trim());
+                    conditions.forEach(condition => {
+                        if (condition) {
+                            tags.push({
+                                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                                type: 'must',
+                                condition: condition
+                            });
+                        }
+                    });
+                } else if (section.toLowerCase().startsWith('must not have:')) {
+                    const conditions = section.substring(14).trim().split(',').map(c => c.trim());
+                    conditions.forEach(condition => {
+                        if (condition) {
+                            tags.push({
+                                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                                type: 'mustnot',
+                                condition: condition
+                            });
+                        }
+                    });
+                } else if (section) {
+                    // If no prefix is specified, assume it's a "Must have" condition
+                    tags.push({
+                        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                        type: 'must',
+                        condition: section
+                    });
+                }
+            });
+            
+            // Store the tags
+            if (scope === 'issue') {
+                issueValidityTags = tags;
+            } else if (scope === 'choice' && choiceNumber !== null) {
+                if (!window.choiceValidityTags[choiceNumber]) {
+                    window.choiceValidityTags[choiceNumber] = [];
+                }
+                window.choiceValidityTags[choiceNumber] = tags;
+            }
+        }
+        
+        // Load example advanced mode text on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const exampleAdvancedText = `[title]Should Democracy be Compulsory?
+[desc]In response to a slow news week, certain highbrow newspapers have stirred up the debate over voluntary vs compulsory voting.
+[validity]Must have: elections; Must not have: No Political Parties
+
+[option]"Compulsory voting makes about as much as sense as having the death penalty for attempted suicide," says civil rights activist @@RANDOMNAME@@. "You can't force people to be free! You can only give them the choice.  Besides, if all those derelicts who can't be bothered to get off their ass once every few years voted, who would they elect? I shudder to think."
+[effect]voting is voluntary
+[validity]Must have: Civil Rights
+
+[option]"It's not contradictory at all," argues political commentator @@RANDOMNAME@@.  "The fact is, if not everyone votes, the outcome isn't truly representative. Some groups--like elderly gun nuts--vote more often than others.  That's why always we always end up with such terrible politicians."
+[effect]voting is compulsory
+[validity]Must have: elections
+
+[option]"This raises an interesting issue," says @@RANDOMNAME@@, your brother. "And that is: why do we need elections, anyway? Seems to me it would be much simpler if you just decided what was right, and did it. Wouldn't that save everyone a lot of time?"
+[effect]elections have been outlawed
+[validity]Must not have: elections`;
+            
+            advancedModeTextarea.value = exampleAdvancedText;
+        });
+    </script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</body>
+</html>

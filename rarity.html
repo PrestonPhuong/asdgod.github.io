@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NS Card Rarity Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+            --primary-color: #4361ee;
+            --secondary-color: #6c757d;
+            --accent-color: #7209b7;
+            --success-color: #2e7d32;
+            --warning-color: #f9c74f;
+            --danger-color: #e63946;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        .dark-mode {
+            --bg-color: #121212;
+            --text-color: #f8f9fa;
+            --card-bg: #1e1e1e;
+            --border-color: #444;
+            --primary-color: #5a7dff;
+            --secondary-color: #a0a0a0;
+            --accent-color: #9d4edd;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: var(--transition);
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 1100px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h1 i {
+            color: var(--accent-color);
+        }
+
+        .subtitle {
+            color: var(--secondary-color);
+            font-style: italic;
+            margin-top: 5px;
+            font-size: 0.95rem;
+        }
+
+        .theme-toggle {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+        }
+
+        .calculator-section, .result-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary-color);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .yes-no-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .yes-no-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .yes-no-btn.selected {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            width: 100%;
+            margin-top: 10px;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .rarity-display {
+            text-align: center;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            background-color: var(--bg-color);
+            border: 2px solid var(--border-color);
+        }
+
+        .rarity-value {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 15px 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .total-points {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+
+        .points-breakdown {
+            margin-top: 30px;
+        }
+
+        .breakdown-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            padding-top: 15px;
+        }
+
+        .rarity-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .rarity-level {
+            flex: 1;
+            padding: 15px 5px;
+            border-radius: 8px;
+            margin: 0 2px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            cursor: help;
+            position: relative;
+        }
+
+        .rarity-level:hover {
+            transform: translateY(-5px);
+            z-index: 10;
+        }
+
+        .rarity-level.active {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            transform: scale(1.05);
+        }
+
+        .rarity-level.common { background-color: #95a5a6; color: white; }
+        .rarity-level.uncommon { background-color: #2ecc71; color: white; }
+        .rarity-level.rare { background-color: #3498db; color: white; }
+        .rarity-level.ultra-rare { background-color: #9b59b6; color: white; }
+        .rarity-level.epic { background-color: #F27E1E; color: white; }
+        .rarity-level.legendary { background-color: #FFFF00; color: white; }
+
+        .rarity-threshold {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+            z-index: 100;
+            margin-bottom: 8px;
+        }
+
+        .rarity-level:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .formula-note {
+            font-size: 0.85rem;
+            color: var(--secondary-color);
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1><i class="fas fa-calculator"></i> NS Card Rarity Calculator</h1>
+            <div></div>
+        </div>
+        <button class="theme-toggle" id="themeToggle">
+            <i class="fas fa-moon"></i> Dark Mode
+        </button>
+    </header>
+
+    <div class="container">
+        <section class="calculator-section">
+            <h2 class="section-title"><i class="fas fa-edit"></i> Enter Your Stats</h2>
+            
+            <div class="input-group">
+                <h3><i class="fas fa-chart-line"></i> Statistics</h3>
+                <div class="input-row">
+                    <label for="worldStats"># of World #1 Stats:</label>
+                    <input type="number" id="worldStats" min="0" value="0">
+                </div>
+                <div class="input-row">
+                    <label for="goldStats"># of Gold Stats:</label>
+                    <input type="number" id="goldStats" min="0" value="4">
+                </div>
+                <div class="input-row">
+                    <label for="orangeStats"># of Orange Stats:</label>
+                    <input type="number" id="orangeStats" min="0" value="14">
+                </div>
+                <div class="input-row">
+                    <label for="greenStats"># of Green Stats:</label>
+                    <input type="number" id="greenStats" min="0" value="11">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <h3><i class="fas fa-trophy"></i> Rankings</h3>
+                <div class="input-row">
+                    <label for="endorsementRank">WA Endorsements Rank:</label>
+                    <input type="number" id="endorsementRank" min="1" value="150">
+                </div>
+                <div class="input-row">
+                    <label for="artworkRank">International Artwork Rank:</label>
+                    <input type="number" id="artworkRank" min="1" value="415">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <h3><i class="fas fa-id-badge"></i> Roles & Badges</h3>
+                <div class="input-row">
+                    <label>WA Member:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn selected" data-id="waMember" data-value="Y">Yes</div>
+                        <div class="yes-no-btn" data-id="waMember" data-value="N">No</div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>WA Delegate:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="waDelegate" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="waDelegate" data-value="N">No</div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>Founder:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="founder" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="founder" data-value="N">No</div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>Governor:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="governor" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="governor" data-value="N">No</div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>Site Supporter:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="siteSupporter" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="siteSupporter" data-value="N">No</div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>Postmaster:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="postmaster" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="postmaster" data-value="N">No</div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>Postmaster-General:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="postmasterGeneral" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="postmasterGeneral" data-value="N">No</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <h3><i class="fas fa-star"></i> Achievements</h3>
+                <div class="input-row">
+                    <label for="easterEggs"># of Easter Eggs:</label>
+                    <input type="number" id="easterEggs" min="0" value="2">
+                </div>
+                <div class="input-row">
+                    <label for="issuesAuthored"># of Issues Authored:</label>
+                    <input type="number" id="issuesAuthored" min="0" value="0">
+                </div>
+                <div class="input-row">
+                    <label for="gaAuthored"># of GA Resolutions Authored:</label>
+                    <input type="number" id="gaAuthored" min="0" value="0">
+                </div>
+                <div class="input-row">
+                    <label for="scAuthored"># of SC Resolutions Authored:</label>
+                    <input type="number" id="scAuthored" min="0" value="0">
+                </div>
+                <div class="input-row">
+                    <label for="unAuthored"># of UN Resolutions Authored:</label>
+                    <input type="number" id="unAuthored" min="0" value="0">
+                </div>
+                <div class="input-row">
+                    <label for="condemnations"># of Condemnations/Commendations:</label>
+                    <input type="number" id="condemnations" min="0" value="0">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <h3><i class="fas fa-user-shield"></i> Staff Roles</h3>
+                <div class="input-row">
+                    <label>Administrator:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="administrator" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="administrator" data-value="N">No</div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>Game Mod:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="gameMod" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="gameMod" data-value="N">No</div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>Forum Mod:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="forumMod" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="forumMod" data-value="N">No</div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>Retired Mod:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="retiredMod" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="retiredMod" data-value="N">No</div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>Issues Editor:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="issuesEditor" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="issuesEditor" data-value="N">No</div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>GA Secretariat:</label>
+                    <div class="yes-no-group">
+                        <div class="yes-no-btn" data-id="gaSecretariat" data-value="Y">Yes</div>
+                        <div class="yes-no-btn selected" data-id="gaSecretariat" data-value="N">No</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="calculate-btn" id="calculateBtn">
+                <i class="fas fa-calculator"></i> Calculate Rarity
+            </button>
+        </section>
+
+        <section class="result-section">
+            <h2 class="section-title"><i class="fas fa-chart-bar"></i> Rarity Prediction</h2>
+            
+            <div class="rarity-display">
+                <div class="rarity-value" id="rarityValue">-</div>
+                <div class="total-points">Total Points: <span id="totalPoints">0.00</span></div>
+                <div class="formula-note">Based on Season 3 formulas</div>
+            </div>
+
+            <div class="rarity-scale">
+                <div class="rarity-level common" data-threshold="4">
+                    Common
+                    <div class="rarity-threshold">0-4</div>
+                    <div class="tooltip">Common: 0-4 points</div>
+                </div>
+                <div class="rarity-level uncommon" data-threshold="9">
+                    Uncommon
+                    <div class="rarity-threshold">4-9</div>
+                    <div class="tooltip">Uncommon: 4-9 points</div>
+                </div>
+                <div class="rarity-level rare" data-threshold="18">
+                    Rare
+                    <div class="rarity-threshold">9-18</div>
+                    <div class="tooltip">Rare: 9-18 points</div>
+                </div>
+                <div class="rarity-level ultra-rare" data-threshold="36">
+                    Ultra Rare
+                    <div class="rarity-threshold">18-36</div>
+                    <div class="tooltip">Ultra Rare: 18-36 points</div>
+                </div>
+                <div class="rarity-level epic" data-threshold="64">
+                    Epic
+                    <div class="rarity-threshold">36-64</div>
+                    <div class="tooltip">Epic: 36-64 points</div>
+                </div>
+                <div class="rarity-level legendary" data-threshold="1000">
+                    Legendary
+                    <div class="rarity-threshold">64+</div>
+                    <div class="tooltip">Legendary: 64+ points</div>
+                </div>
+            </div>
+
+            <div class="points-breakdown">
+                <h3 class="breakdown-title"><i class="fas fa-list-ol"></i> Points Breakdown</h3>
+                <div id="breakdownList">
+                    <!-- Points breakdown will be inserted here -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Disclaimer:This calculator is simply an estimate and should not be taken as gospel, especially as the formula is likely to change next season!</p>
+    </footer>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                themeIcon.className = 'fas fa-sun';
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+            }
+            
+            // Save preference to localStorage
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        });
+        
+        // Load saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeIcon.className = 'fas fa-sun';
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+        }
+        
+        // Yes/No button functionality
+        document.querySelectorAll('.yes-no-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const groupId = this.getAttribute('data-id');
+                const value = this.getAttribute('data-value');
+                
+                // Remove selected class from all buttons in the same group
+                document.querySelectorAll(`.yes-no-btn[data-id="${groupId}"]`).forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked button
+                this.classList.add('selected');
+            });
+        });
+        
+        // Calculate button functionality
+        document.getElementById('calculateBtn').addEventListener('click', calculateRarity);
+        
+        // Also calculate when Enter is pressed in any input field
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    calculateRarity();
+                }
+            });
+        });
+        
+        // Pre-fill with example data from the second sheet
+        function loadExampleData() {
+            // These values are from the "desired outcome" sheet
+            document.getElementById('worldStats').value = 0;
+            document.getElementById('goldStats').value = 10;
+            document.getElementById('orangeStats').value = 10;
+            document.getElementById('greenStats').value = 2;
+            document.getElementById('endorsementRank').value = 120;
+            document.getElementById('artworkRank').value = 300;
+            
+            // Set yes/no buttons for the example
+            setYesNoValue('waMember', 'Y');
+            setYesNoValue('waDelegate', 'N');
+            setYesNoValue('founder', 'N');
+            setYesNoValue('governor', 'N');
+            setYesNoValue('siteSupporter', 'N');
+            setYesNoValue('postmaster', 'N');
+            setYesNoValue('postmasterGeneral', 'Y');
+            
+            document.getElementById('easterEggs').value = 6;
+            document.getElementById('issuesAuthored').value = 2;
+            document.getElementById('gaAuthored').value = 0;
+            document.getElementById('scAuthored').value = 0;
+            document.getElementById('unAuthored').value = 0;
+            document.getElementById('condemnations').value = 0;
+            
+            setYesNoValue('administrator', 'N');
+            setYesNoValue('gameMod', 'N');
+            setYesNoValue('forumMod', 'N');
+            setYesNoValue('retiredMod', 'N');
+            setYesNoValue('issuesEditor', 'N');
+            setYesNoValue('gaSecretariat', 'N');
+        }
+        
+        function setYesNoValue(id, value) {
+            document.querySelectorAll(`.yes-no-btn[data-id="${id}"]`).forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.getAttribute('data-value') === value) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+        
+        // Load example data on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadExampleData();
+            calculateRarity(); // Calculate with example data on load
+        });
+        
+        // Main calculation function
+        function calculateRarity() {
+            // Get all input values
+            const worldStats = parseFloat(document.getElementById('worldStats').value) || 0;
+            const goldStats = parseFloat(document.getElementById('goldStats').value) || 0;
+            const orangeStats = parseFloat(document.getElementById('orangeStats').value) || 0;
+            const greenStats = parseFloat(document.getElementById('greenStats').value) || 0;
+            const endorsementRank = parseFloat(document.getElementById('endorsementRank').value) || 0;
+            const artworkRank = parseFloat(document.getElementById('artworkRank').value) || 0;
+            const easterEggs = parseFloat(document.getElementById('easterEggs').value) || 0;
+            const issuesAuthored = parseFloat(document.getElementById('issuesAuthored').value) || 0;
+            const gaAuthored = parseFloat(document.getElementById('gaAuthored').value) || 0;
+            const scAuthored = parseFloat(document.getElementById('scAuthored').value) || 0;
+            const unAuthored = parseFloat(document.getElementById('unAuthored').value) || 0;
+            const condemnations = parseFloat(document.getElementById('condemnations').value) || 0;
+            
+            // Get yes/no values
+            const waMember = document.querySelector('.yes-no-btn[data-id="waMember"].selected').getAttribute('data-value');
+            const waDelegate = document.querySelector('.yes-no-btn[data-id="waDelegate"].selected').getAttribute('data-value');
+            const founder = document.querySelector('.yes-no-btn[data-id="founder"].selected').getAttribute('data-value');
+            const governor = document.querySelector('.yes-no-btn[data-id="governor"].selected').getAttribute('data-value');
+            const siteSupporter = document.querySelector('.yes-no-btn[data-id="siteSupporter"].selected').getAttribute('data-value');
+            const postmaster = document.querySelector('.yes-no-btn[data-id="postmaster"].selected').getAttribute('data-value');
+            const postmasterGeneral = document.querySelector('.yes-no-btn[data-id="postmasterGeneral"].selected').getAttribute('data-value');
+            const administrator = document.querySelector('.yes-no-btn[data-id="administrator"].selected').getAttribute('data-value');
+            const gameMod = document.querySelector('.yes-no-btn[data-id="gameMod"].selected').getAttribute('data-value');
+            const forumMod = document.querySelector('.yes-no-btn[data-id="forumMod"].selected').getAttribute('data-value');
+            const retiredMod = document.querySelector('.yes-no-btn[data-id="retiredMod"].selected').getAttribute('data-value');
+            const issuesEditor = document.querySelector('.yes-no-btn[data-id="issuesEditor"].selected').getAttribute('data-value');
+            const gaSecretariat = document.querySelector('.yes-no-btn[data-id="gaSecretariat"].selected').getAttribute('data-value');
+            
+            // Calculate points based on formulas from Excel
+            const points = {
+                worldStatsPoints: worldStats * 6,
+                goldStatsPoints: goldStats * 1.4,
+                orangeStatsPoints: orangeStats * 0.2,
+                greenStatsPoints: greenStats * 0.02,
+                endorsementPoints: Math.sqrt((1/(0.001*Math.pow((endorsementRank+60),2)))*((endorsementRank+60)+10000)),
+                artworkPoints: Math.sqrt((1/(0.01*Math.pow((artworkRank+60),2)))*((artworkRank+60)+10000)),
+                waMemberPoints: waMember === 'Y' ? 0.1 : 0,
+                waDelegatePoints: waDelegate === 'Y' ? 8 : 0,
+                founderPoints: founder === 'Y' ? 4 : 0,
+                governorPoints: governor === 'Y' ? 4 : 0,
+                siteSupporterPoints: siteSupporter === 'Y' ? 0.02 : 0,
+                postmasterPoints: postmaster === 'Y' ? 0.05 : 0,
+                postmasterGeneralPoints: postmasterGeneral === 'Y' ? 0.1 : 0,
+                easterEggsPoints: 1.25 * Math.sqrt(easterEggs),
+                issuesAuthoredPoints: 2 * Math.sqrt(issuesAuthored * 40),
+                gaAuthoredPoints: 2 * Math.sqrt(gaAuthored * 15),
+                scAuthoredPoints: 2 * Math.sqrt(scAuthored * 15),
+                unAuthoredPoints: 2 * Math.sqrt(unAuthored * 15),
+                condemnationsPoints: 2 * Math.sqrt(condemnations * 120),
+                administratorPoints: administrator === 'Y' ? 80 : 0,
+                gameModPoints: gameMod === 'Y' ? 50 : 0,
+                forumModPoints: forumMod === 'Y' ? 50 : 0,
+                retiredModPoints: retiredMod === 'Y' ? 6 : 0,
+                issuesEditorPoints: issuesEditor === 'Y' ? 50 : 0,
+                gaSecretariatPoints: gaSecretariat === 'Y' ? 50 : 0
+            };
+            
+            // Calculate total points
+            let totalPoints = 0;
+            for (const key in points) {
+                totalPoints += points[key];
+            }
+            
+            // Determine rarity based on total points
+            let rarity;
+            if (totalPoints < 4) {
+                rarity = "COMMON";
+            } else if (totalPoints < 9) {
+                rarity = "UNCOMMON";
+            } else if (totalPoints < 18) {
+                rarity = "RARE";
+            } else if (totalPoints < 36) {
+                rarity = "ULTRA-RARE";
+            } else if (totalPoints < 64) {
+                rarity = "EPIC";
+            } else {
+                rarity = "LEGENDARY";
+            }
+            
+            // Update the UI with results
+            document.getElementById('rarityValue').textContent = rarity;
+            document.getElementById('totalPoints').textContent = totalPoints.toFixed(2);
+            
+            // Update active rarity level
+            document.querySelectorAll('.rarity-level').forEach(level => {
+                level.classList.remove('active');
+                const threshold = parseFloat(level.getAttribute('data-threshold'));
+                
+                if (rarity === "COMMON" && threshold === 4) {
+                    level.classList.add('active');
+                } else if (rarity === "UNCOMMON" && threshold === 9) {
+                    level.classList.add('active');
+                } else if (rarity === "RARE" && threshold === 18) {
+                    level.classList.add('active');
+                } else if (rarity === "ULTRA-RARE" && threshold === 36) {
+                    level.classList.add('active');
+                } else if (rarity === "EPIC" && threshold === 64) {
+                    level.classList.add('active');
+                } else if (rarity === "LEGENDARY" && threshold === 1000) {
+                    level.classList.add('active');
+                }
+            });
+            
+            // Update points breakdown
+            const breakdownList = document.getElementById('breakdownList');
+            let breakdownHTML = '';
+            
+            // Add each point component to the breakdown
+            breakdownHTML += `<div class="breakdown-item"><span>World #1 Stats (${worldStats} × 6):</span><span>${points.worldStatsPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Gold Stats (${goldStats} × 1.4):</span><span>${points.goldStatsPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Orange Stats (${orangeStats} × 0.2):</span><span>${points.orangeStatsPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Green Stats (${greenStats} × 0.02):</span><span>${points.greenStatsPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>WA Endorsements Rank (${endorsementRank}):</span><span>${points.endorsementPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Int. Artwork Rank (${artworkRank}):</span><span>${points.artworkPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>WA Member (${waMember}):</span><span>${points.waMemberPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>WA Delegate (${waDelegate}):</span><span>${points.waDelegatePoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Founder (${founder}):</span><span>${points.founderPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Governor (${governor}):</span><span>${points.governorPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Site Supporter (${siteSupporter}):</span><span>${points.siteSupporterPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Postmaster (${postmaster}):</span><span>${points.postmasterPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Postmaster-General (${postmasterGeneral}):</span><span>${points.postmasterGeneralPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Easter Eggs (${easterEggs}):</span><span>${points.easterEggsPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Issues Authored (${issuesAuthored}):</span><span>${points.issuesAuthoredPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>GA Resolutions (${gaAuthored}):</span><span>${points.gaAuthoredPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>SC Resolutions (${scAuthored}):</span><span>${points.scAuthoredPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>UN Resolutions (${unAuthored}):</span><span>${points.unAuthoredPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Condemnations/Commendations (${condemnations}):</span><span>${points.condemnationsPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Administrator (${administrator}):</span><span>${points.administratorPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Game Mod (${gameMod}):</span><span>${points.gameModPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Forum Mod (${forumMod}):</span><span>${points.forumModPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Retired Mod (${retiredMod}):</span><span>${points.retiredModPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>Issues Editor (${issuesEditor}):</span><span>${points.issuesEditorPoints.toFixed(2)}</span></div>`;
+            breakdownHTML += `<div class="breakdown-item"><span>GA Secretariat (${gaSecretariat}):</span><span>${points.gaSecretariatPoints.toFixed(2)}</span></div>`;
+            
+            breakdownHTML += `<div class="breakdown-item"><span>TOTAL POINTS:</span><span>${totalPoints.toFixed(2)}</span></div>`;
+            
+            breakdownList.innerHTML = breakdownHTML;
+        }
+    </script>
+</body>
+</html>

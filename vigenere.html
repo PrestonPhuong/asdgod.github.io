@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Vigenère Cipher Table</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: #f0f0f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #c2e9fb;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .control-panel {
+            flex: 1;
+            min-width: 350px;
+            background-color: rgba(0, 20, 40, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+        }
+        
+        .vigenere-table-container {
+            flex: 2;
+            min-width: 400px;
+            background-color: rgba(0, 20, 40, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            overflow: auto;
+        }
+        
+        .panel-title {
+            color: #6ee7ff;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(110, 231, 255, 0.3);
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .panel-title i {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a8e6ff;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 14px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(110, 231, 255, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #6ee7ff;
+            box-shadow: 0 0 10px rgba(110, 231, 255, 0.5);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button i {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+        
+        .btn-encrypt {
+            background: linear-gradient(to right, #00b09b, #96c93d);
+            color: white;
+        }
+        
+        .btn-encrypt:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(0, 176, 155, 0.4);
+        }
+        
+        .btn-decrypt {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            color: white;
+        }
+        
+        .btn-decrypt:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(255, 65, 108, 0.4);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(to right, #8e2de2, #4a00e0);
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(142, 45, 226, 0.4);
+        }
+        
+        .vigenere-table {
+            border-collapse: collapse;
+            margin: 0 auto;
+            font-size: 0.9rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .vigenere-table th,
+        .vigenere-table td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px;
+            text-align: center;
+            min-width: 30px;
+            height: 30px;
+            transition: all 0.3s;
+        }
+        
+        .vigenere-table th {
+            background-color: rgba(0, 40, 85, 0.9);
+            color: #6ee7ff;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .vigenere-table th:first-child {
+            left: 0;
+            z-index: 20;
+            background-color: rgba(0, 60, 120, 0.95);
+        }
+        
+        .vigenere-table td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            background-color: rgba(0, 40, 85, 0.9);
+            font-weight: bold;
+            color: #6ee7ff;
+        }
+        
+        .vigenere-table td.highlight {
+            background-color: rgba(110, 231, 255, 0.7);
+            color: #001428;
+            font-weight: bold;
+            transform: scale(1.1);
+            z-index: 1;
+            box-shadow: 0 0 10px rgba(110, 231, 255, 0.8);
+        }
+        
+        .vigenere-table td.key-row {
+            background-color: rgba(255, 193, 7, 0.2);
+        }
+        
+        .vigenere-table td.plaintext-col {
+            background-color: rgba(40, 167, 69, 0.2);
+        }
+        
+        .result-container {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border-left: 4px solid #6ee7ff;
+        }
+        
+        .result-title {
+            color: #6ee7ff;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .result-text {
+            font-size: 1.2rem;
+            word-break: break-word;
+            line-height: 1.6;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            min-height: 60px;
+        }
+        
+        .visualization {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        
+        .step-visualization {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .step-item {
+            padding: 10px 15px;
+            border-radius: 8px;
+            min-width: 50px;
+        }
+        
+        .plaintext-letter {
+            background-color: rgba(40, 167, 69, 0.7);
+            color: white;
+        }
+        
+        .key-letter {
+            background-color: rgba(255, 193, 7, 0.7);
+            color: #333;
+        }
+        
+        .operator {
+            color: #6ee7ff;
+            font-size: 1.5rem;
+        }
+        
+        .result-letter {
+            background-color: rgba(110, 231, 255, 0.7);
+            color: #001428;
+        }
+        
+        .instructions {
+            background-color: rgba(0, 20, 40, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+        }
+        
+        .instructions h3 {
+            color: #6ee7ff;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+        
+        .instructions ol {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        
+        .instructions p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .example {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .example-title {
+            color: #ffc107;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 1200px) {
+            .vigenere-table {
+                font-size: 0.8rem;
+            }
+            
+            .vigenere-table th,
+            .vigenere-table td {
+                padding: 5px;
+                min-width: 25px;
+                height: 25px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .vigenere-table {
+                font-size: 0.7rem;
+            }
+            
+            .vigenere-table th,
+            .vigenere-table td {
+                padding: 4px;
+                min-width: 22px;
+                height: 22px;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Virtual Vigenère Cipher Table</h1>
+            <div class="subtitle">
+                A polyalphabetic substitution cipher that uses a keyword to shift letters in the message. 
+                The Vigenère cipher was considered unbreakable for centuries and is more secure than simple substitution ciphers.
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <h2 class="panel-title"><i class="fas fa-sliders-h"></i> CIPHER CONTROLS</h2>
+                
+                <div class="input-group">
+                    <label class="input-label">Plaintext Message</label>
+                    <textarea id="plaintext" class="input-field" rows="4" placeholder="Enter your message here...">ATTACK AT DAWN</textarea>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Cipher Key (Keyword)</label>
+                    <input type="text" id="key" class="input-field" placeholder="Enter a keyword (letters only)" value="LEMON">
+                    <div style="color: #a8e6ff; font-size: 0.9rem; margin-top: 5px;">
+                        The key will be repeated to match the message length.
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label">Ciphertext Result</label>
+                    <textarea id="ciphertext" class="input-field" rows="4" placeholder="Encrypted text will appear here..." readonly></textarea>
+                </div>
+                
+                <div class="btn-group">
+                    <button id="encrypt-btn" class="btn-encrypt">
+                        <i class="fas fa-lock"></i> Encrypt
+                    </button>
+                    <button id="decrypt-btn" class="btn-decrypt">
+                        <i class="fas fa-unlock"></i> Decrypt
+                    </button>
+                    <button id="reset-btn" class="btn-reset">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+                
+                <div class="result-container">
+                    <div class="result-title">Current Operation</div>
+                    <div id="operation-result" class="result-text">
+                        Enter a message and key, then click Encrypt or Decrypt.
+                    </div>
+                </div>
+                
+                <div class="visualization">
+                    <div class="result-title">Step-by-Step Visualization</div>
+                    <div id="step-visualization" class="step-visualization">
+                        <!-- Visualization will be generated here -->
+                        <div class="step-item plaintext-letter">A</div>
+                        <div class="operator">+</div>
+                        <div class="step-item key-letter">L</div>
+                        <div class="operator">=</div>
+                        <div class="step-item result-letter">L</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="vigenere-table-container">
+                <h2 class="panel-title"><i class="fas fa-table"></i> VIGENÈRE TABLE</h2>
+                <div style="overflow: auto; max-height: 600px;">
+                    <table id="vigenere-table" class="vigenere-table">
+                        <!-- Table will be generated by JavaScript -->
+                    </table>
+                </div>
+                <div style="color: #a8e6ff; margin-top: 15px; text-align: center;">
+                    <i class="fas fa-info-circle"></i> The table shows the encryption of each letter combination. 
+                    Find the plaintext letter in the first column and the key letter in the first row.
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>How the Vigenère Cipher Works</h3>
+            <ol>
+                <li>Write your message (plaintext) and choose a keyword.</li>
+                <li>Repeat the keyword to match the length of the message.</li>
+                <li>For each letter in the message:
+                    <ul style="margin-top: 8px; padding-left: 20px;">
+                        <li>Find the row starting with the plaintext letter (first column)</li>
+                        <li>Find the column starting with the corresponding key letter (first row)</li>
+                        <li>The intersection gives you the encrypted letter (ciphertext)</li>
+                    </ul>
+                </li>
+                <li>To decrypt, find the key letter row and look for the ciphertext letter in that row. The column letter is the plaintext.</li>
+            </ol>
+            
+            <div class="example">
+                <div class="example-title">Example: Encrypting "HELLO" with key "KEY"</div>
+                <p><strong>Message:</strong> HELLO</p>
+                <p><strong>Key (repeated):</strong> KEYKE</p>
+                <p><strong>Encryption:</strong><br>
+                H (7) + K (10) = R (17)<br>
+                E (4) + E (4) = I (8)<br>
+                L (11) + Y (24) = J (9)<br>
+                L (11) + K (10) = V (21)<br>
+                O (14) + E (4) = S (18)<br>
+                <strong>Result:</strong> RIJVS</p>
+            </div>
+            
+            <p style="margin-top: 20px;">
+                <strong>Note:</strong> The Vigenère cipher was invented in the 16th century and remained unbroken for centuries until 
+                Charles Babbage and Friedrich Kasiski independently developed methods to break it in the 19th century.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Vigenère Cipher Implementation
+        class VigenereCipher {
+            constructor() {
+                this.alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                this.table = [];
+                this.currentStep = 0;
+                this.maxSteps = 0;
+                this.animationInterval = null;
+                
+                this.generateTable();
+                this.setupEventListeners();
+                this.initializeExample();
+            }
+            
+            // Generate the Vigenère table
+            generateTable() {
+                const tableElement = document.getElementById('vigenere-table');
+                tableElement.innerHTML = '';
+                
+                // Create header row
+                let headerRow = document.createElement('tr');
+                
+                // Empty top-left cell
+                let headerCell = document.createElement('th');
+                headerCell.textContent = '';
+                headerRow.appendChild(headerCell);
+                
+                // Column headers (A-Z)
+                for (let i = 0; i < this.alphabet.length; i++) {
+                    headerCell = document.createElement('th');
+                    headerCell.textContent = this.alphabet[i];
+                    headerRow.appendChild(headerCell);
+                }
+                
+                tableElement.appendChild(headerRow);
+                
+                // Create table rows
+                for (let i = 0; i < this.alphabet.length; i++) {
+                    let row = document.createElement('tr');
+                    
+                    // Row header (letter)
+                    let rowHeader = document.createElement('th');
+                    rowHeader.textContent = this.alphabet[i];
+                    row.appendChild(rowHeader);
+                    
+                    // Table cells
+                    for (let j = 0; j < this.alphabet.length; j++) {
+                        let cell = document.createElement('td');
+                        // Vigenère formula: (rowIndex + colIndex) mod 26
+                        let charIndex = (i + j) % this.alphabet.length;
+                        cell.textContent = this.alphabet[charIndex];
+                        cell.dataset.row = this.alphabet[i];
+                        cell.dataset.col = this.alphabet[j];
+                        row.appendChild(cell);
+                    }
+                    
+                    tableElement.appendChild(row);
+                }
+                
+                this.table = tableElement;
+            }
+            
+            // Prepare key by repeating it to match message length
+            prepareKey(key, length) {
+                key = key.toUpperCase().replace(/[^A-Z]/g, '');
+                if (key.length === 0) return '';
+                
+                let preparedKey = '';
+                for (let i = 0; i < length; i++) {
+                    preparedKey += key[i % key.length];
+                }
+                return preparedKey;
+            }
+            
+            // Encrypt a message
+            encrypt(plaintext, key) {
+                plaintext = plaintext.toUpperCase().replace(/[^A-Z]/g, '');
+                if (plaintext.length === 0) return '';
+                
+                const preparedKey = this.prepareKey(key, plaintext.length);
+                let ciphertext = '';
+                
+                for (let i = 0; i < plaintext.length; i++) {
+                    const plainChar = plaintext[i];
+                    const keyChar = preparedKey[i];
+                    
+                    const plainIndex = this.alphabet.indexOf(plainChar);
+                    const keyIndex = this.alphabet.indexOf(keyChar);
+                    
+                    if (plainIndex === -1 || keyIndex === -1) {
+                        ciphertext += plainChar;
+                    } else {
+                        const cipherIndex = (plainIndex + keyIndex) % this.alphabet.length;
+                        ciphertext += this.alphabet[cipherIndex];
+                    }
+                }
+                
+                return ciphertext;
+            }
+            
+            // Decrypt a message
+            decrypt(ciphertext, key) {
+                ciphertext = ciphertext.toUpperCase().replace(/[^A-Z]/g, '');
+                if (ciphertext.length === 0) return '';
+                
+                const preparedKey = this.prepareKey(key, ciphertext.length);
+                let plaintext = '';
+                
+                for (let i = 0; i < ciphertext.length; i++) {
+                    const cipherChar = ciphertext[i];
+                    const keyChar = preparedKey[i];
+                    
+                    const cipherIndex = this.alphabet.indexOf(cipherChar);
+                    const keyIndex = this.alphabet.indexOf(keyChar);
+                    
+                    if (cipherIndex === -1 || keyIndex === -1) {
+                        plaintext += cipherChar;
+                    } else {
+                        let plainIndex = (cipherIndex - keyIndex) % this.alphabet.length;
+                        if (plainIndex < 0) plainIndex += this.alphabet.length;
+                        plaintext += this.alphabet[plainIndex];
+                    }
+                }
+                
+                return plaintext;
+            }
+            
+            // Highlight cells in the table for visualization
+            highlightCells(plaintext, key, isEncrypt = true) {
+                // Clear previous highlights
+                const cells = document.querySelectorAll('#vigenere-table td');
+                cells.forEach(cell => {
+                    cell.classList.remove('highlight');
+                    cell.classList.remove('key-row');
+                    cell.classList.remove('plaintext-col');
+                });
+                
+                // Clear column and row highlights
+                const headers = document.querySelectorAll('#vigenere-table th');
+                headers.forEach(header => {
+                    header.classList.remove('key-row');
+                    header.classList.remove('plaintext-col');
+                });
+                
+                plaintext = plaintext.toUpperCase().replace(/[^A-Z]/g, '');
+                if (plaintext.length === 0) return;
+                
+                const preparedKey = this.prepareKey(key, plaintext.length);
+                
+                // Show the first letter as an example
+                if (plaintext.length > 0 && preparedKey.length > 0) {
+                    const plainChar = plaintext[0];
+                    const keyChar = preparedKey[0];
+                    
+                    // Highlight key row (first row header)
+                    const keyHeaders = document.querySelectorAll('#vigenere-table th');
+                    keyHeaders.forEach(header => {
+                        if (header.textContent === keyChar) {
+                            header.classList.add('key-row');
+                        }
+                    });
+                    
+                    // Highlight plaintext column (first column)
+                    const rowHeaders = document.querySelectorAll('#vigenere-table th');
+                    rowHeaders.forEach(header => {
+                        if (header.textContent === plainChar) {
+                            header.classList.add('plaintext-col');
+                        }
+                    });
+                    
+                    // Highlight the intersection cell
+                    const targetCell = document.querySelector(
+                        `#vigenere-table td[data-row="${plainChar}"][data-col="${keyChar}"]`
+                    );
+                    if (targetCell) {
+                        targetCell.classList.add('highlight');
+                        
+                        // Get the result letter
+                        const resultLetter = targetCell.textContent;
+                        
+                        // Update step visualization
+                        this.updateStepVisualization(plainChar, keyChar, resultLetter, isEncrypt);
+                    }
+                }
+            }
+            
+            // Update the step-by-step visualization
+            updateStepVisualization(plainChar, keyChar, resultChar, isEncrypt) {
+                const container = document.getElementById('step-visualization');
+                
+                if (isEncrypt) {
+                    container.innerHTML = `
+                        <div class="step-item plaintext-letter">${plainChar}</div>
+                        <div class="operator">+</div>
+                        <div class="step-item key-letter">${keyChar}</div>
+                        <div class="operator">=</div>
+                        <div class="step-item result-letter">${resultChar}</div>
+                        <div style="flex-basis: 100%; height: 0;"></div>
+                        <div style="color: #a8e6ff; font-size: 1rem; margin-top: 10px;">
+                            ${plainChar} (${this.alphabet.indexOf(plainChar)}) + ${keyChar} (${this.alphabet.indexOf(keyChar)}) = ${resultChar} (${this.alphabet.indexOf(resultChar)})
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="step-item result-letter">${resultChar}</div>
+                        <div class="operator">-</div>
+                        <div class="step-item key-letter">${keyChar}</div>
+                        <div class="operator">=</div>
+                        <div class="step-item plaintext-letter">${plainChar}</div>
+                        <div style="flex-basis: 100%; height: 0;"></div>
+                        <div style="color: #a8e6ff; font-size: 1rem; margin-top: 10px;">
+                            ${resultChar} (${this.alphabet.indexOf(resultChar)}) - ${keyChar} (${this.alphabet.indexOf(keyChar)}) = ${plainChar} (${this.alphabet.indexOf(plainChar)})
+                        </div>
+                    `;
+                }
+            }
+            
+            // Initialize with an example
+            initializeExample() {
+                const plaintext = document.getElementById('plaintext').value;
+                const key = document.getElementById('key').value;
+                
+                const ciphertext = this.encrypt(plaintext, key);
+                document.getElementById('ciphertext').value = ciphertext;
+                
+                this.highlightCells(plaintext, key, true);
+                
+                document.getElementById('operation-result').textContent = 
+                    `Encrypted "${plaintext}" with key "${key}" to get "${ciphertext}"`;
+            }
+            
+            // Setup event listeners
+            setupEventListeners() {
+                // Encrypt button
+                document.getElementById('encrypt-btn').addEventListener('click', () => {
+                    const plaintext = document.getElementById('plaintext').value;
+                    const key = document.getElementById('key').value;
+                    
+                    if (!plaintext.trim() || !key.trim()) {
+                        alert('Please enter both a message and a key.');
+                        return;
+                    }
+                    
+                    const ciphertext = this.encrypt(plaintext, key);
+                    document.getElementById('ciphertext').value = ciphertext;
+                    
+                    this.highlightCells(plaintext, key, true);
+                    
+                    document.getElementById('operation-result').textContent = 
+                        `Encrypted "${plaintext}" with key "${key}" to get "${ciphertext}"`;
+                });
+                
+                // Decrypt button
+                document.getElementById('decrypt-btn').addEventListener('click', () => {
+                    const ciphertext = document.getElementById('ciphertext').value;
+                    const key = document.getElementById('key').value;
+                    
+                    if (!ciphertext.trim() || !key.trim()) {
+                        alert('Please enter both ciphertext and a key.');
+                        return;
+                    }
+                    
+                    const plaintext = this.decrypt(ciphertext, key);
+                    document.getElementById('plaintext').value = plaintext;
+                    
+                    this.highlightCells(plaintext, key, false);
+                    
+                    document.getElementById('operation-result').textContent = 
+                        `Decrypted "${ciphertext}" with key "${key}" to get "${plaintext}"`;
+                });
+                
+                // Reset button
+                document.getElementById('reset-btn').addEventListener('click', () => {
+                    document.getElementById('plaintext').value = '';
+                    document.getElementById('key').value = '';
+                    document.getElementById('ciphertext').value = '';
+                    
+                    // Clear highlights
+                    const cells = document.querySelectorAll('#vigenere-table td');
+                    cells.forEach(cell => {
+                        cell.classList.remove('highlight');
+                        cell.classList.remove('key-row');
+                        cell.classList.remove('plaintext-col');
+                    });
+                    
+                    const headers = document.querySelectorAll('#vigenere-table th');
+                    headers.forEach(header => {
+                        header.classList.remove('key-row');
+                        header.classList.remove('plaintext-col');
+                    });
+                    
+                    document.getElementById('operation-result').textContent = 
+                        'Enter a message and key, then click Encrypt or Decrypt.';
+                        
+                    document.getElementById('step-visualization').innerHTML = `
+                        <div class="step-item plaintext-letter">A</div>
+                        <div class="operator">+</div>
+                        <div class="step-item key-letter">L</div>
+                        <div class="operator">=</div>
+                        <div class="step-item result-letter">L</div>
+                    `;
+                });
+                
+                // Auto-update when typing in plaintext
+                document.getElementById('plaintext').addEventListener('input', () => {
+                    const plaintext = document.getElementById('plaintext').value;
+                    const key = document.getElementById('key').value;
+                    
+                    if (key.trim()) {
+                        const ciphertext = this.encrypt(plaintext, key);
+                        document.getElementById('ciphertext').value = ciphertext;
+                        this.highlightCells(plaintext, key, true);
+                    }
+                });
+                
+                // Auto-update when typing in key
+                document.getElementById('key').addEventListener('input', () => {
+                    const plaintext = document.getElementById('plaintext').value;
+                    const key = document.getElementById('key').value;
+                    
+                    if (plaintext.trim() && key.trim()) {
+                        const ciphertext = this.encrypt(plaintext, key);
+                        document.getElementById('ciphertext').value = ciphertext;
+                        this.highlightCells(plaintext, key, true);
+                    }
+                });
+                
+                // Auto-update when typing in ciphertext
+                document.getElementById('ciphertext').addEventListener('input', () => {
+                    const ciphertext = document.getElementById('ciphertext').value;
+                    const key = document.getElementById('key').value;
+                    
+                    if (ciphertext.trim() && key.trim()) {
+                        const plaintext = this.decrypt(ciphertext, key);
+                        document.getElementById('plaintext').value = plaintext;
+                        this.highlightCells(plaintext, key, false);
+                    }
+                });
+            }
+        }
+        
+        // Initialize the Vigenère cipher when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const vigenereCipher = new VigenereCipher();
+        });
+    </script>
+</body>
+</html>

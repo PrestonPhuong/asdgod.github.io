@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4x4 kakuro · dark sum solver</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #0b0b0e;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: #1a1c1e;
+            padding: 2rem 2rem 2.2rem;
+            border-radius: 36px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.9), inset 0 0 0 1px rgba(255,255,255,0.05);
+            width: fit-content;
+        }
+        h2 {
+            color: #e3e9f2;
+            font-weight: 330;
+            letter-spacing: 1.5px;
+            font-size: 1.8rem;
+            margin: 0 0 1.2rem 0.5rem;
+            opacity: 0.92;
+        }
+        .puzzle-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* main grid: 5 rows, 5 columns — first row/col for inputs */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 80px repeat(4, 70px);
+            grid-template-rows: 60px repeat(4, 70px);
+            gap: 12px;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+        .grid-cell {
+            background: #25282c;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 450;
+            color: #f0f4fa;
+            box-shadow: 0 6px 0 #0f1113, 0 8px 14px rgba(0,0,0,0.7);
+            transition: background 0.08s, box-shadow 0.1s, transform 0.05s;
+            cursor: pointer;
+            border: 1px solid #3f444a;
+            text-shadow: 0 2px 3px black;
+            width: 100%;
+            height: 100%;
+        }
+        .grid-cell.removed {
+            background: #0e0f10;
+            border: 1px solid #2f353b;
+            box-shadow: inset 0 0 0 1px #2b2f33, 0 4px 6px black;
+            color: #5b646e;
+            font-size: 2.2rem;
+            font-weight: 300;
+            text-shadow: none;
+        }
+        .grid-cell.solved {
+            background: #2c3a47;
+            border: 1px solid #4b6883;
+            color: #dde9ff;
+            box-shadow: 0 4px 0 #1a242e, 0 8px 12px black;
+        }
+        .input-cell {
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sum-input {
+            width: 70px;
+            height: 50px;
+            background: #1e2226;
+            border: 1px solid #4d5660;
+            border-radius: 30px;
+            color: #cbd5e6;
+            font-size: 1.5rem;
+            font-weight: 400;
+            text-align: center;
+            box-shadow: inset 0 3px 6px #0b0d0f, 0 3px 0 #13171b;
+            outline: none;
+            transition: 0.08s;
+            padding: 0 5px;
+        }
+        .sum-input:focus {
+            border-color: #7b8fa1;
+            background: #282f36;
+            color: #f0f6ff;
+            box-shadow: inset 0 3px 6px #0b0d0f, 0 4px 0 #1f272e;
+        }
+        .sum-input::placeholder {
+            color: #4b555f;
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+        .row-label {
+            justify-self: end;
+            padding-right: 8px;
+            color: #9aaec5;
+            font-weight: 400;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+        .col-label {
+            align-self: end;
+            padding-bottom: 6px;
+            color: #9aaec5;
+            font-weight: 400;
+            font-size: 1.1rem;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 32px;
+        }
+        button {
+            background: #262b30;
+            border: none;
+            color: #d3deed;
+            font-size: 1.25rem;
+            font-weight: 400;
+            padding: 12px 32px;
+            border-radius: 48px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #111417, 0 6px 12px black;
+            transition: 0.08s ease;
+            border: 1px solid #3e4550;
+            width: 150px;
+        }
+        button:hover {
+            background: #2e353d;
+            color: #ecf2ff;
+            border-color: #5f6c7e;
+        }
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #111417, 0 5px 10px black;
+        }
+        .info {
+            color: #98a3b3;
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.95rem;
+            border-top: 1px solid #282e34;
+            padding-top: 18px;
+        }
+        .info span {
+            background: #202428;
+            padding: 6px 20px;
+            border-radius: 60px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>◈ 4x4 KAKURO · sums ◈</h2>
+    <div class="puzzle-area">
+        <div class="grid-container" id="kakuroGrid"></div>
+    </div>
+    <div class="controls">
+        <button id="solveBtn">✦ SOLVE</button>
+        <button id="resetCellsBtn">⌫ RESET CELLS</button>
+    </div>
+    <div class="info">
+        <span>✕ click cell = removed  |  set row/column sums (1–30)  |  digits 1–9 no repeats</span>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const size = 4;
+        // removed[row][col] : true if blocked
+        let removed = Array(size).fill().map(() => Array(size).fill(false));
+        // numbers[row][col] : null or digit 1..9
+        let numbers = Array(size).fill().map(() => Array(size).fill(null));
+
+        // references to sum input elements
+        const rowInputs = [];
+        const colInputs = [];
+
+        const gridContainer = document.getElementById('kakuroGrid');
+
+        // --- build the grid with input fields ---
+        function buildInterface() {
+            gridContainer.innerHTML = '';
+
+            // create 5 rows, 5 columns (0..4)
+            for (let r = 0; r <= size; r++) {
+                for (let c = 0; c <= size; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell'; // fallback, but we'll override for input cells
+
+                    if (r === 0 && c === 0) {
+                        // top-left empty (just visual)
+                        cell.className = 'input-cell';
+                        cell.style.background = 'transparent';
+                        cell.style.boxShadow = 'none';
+                        cell.style.border = 'none';
+                        cell.textContent = '';
+                    } 
+                    else if (r === 0) {
+                        // column input (c = 1..4) -> col index c-1
+                        cell.className = 'input-cell';
+                        cell.style.background = 'transparent';
+                        cell.style.boxShadow = 'none';
+                        cell.style.border = 'none';
+                        const input = document.createElement('input');
+                        input.type = 'number';
+                        input.min = 0;
+                        input.max = 30;
+                        input.step = 1;
+                        input.placeholder = 'sum';
+                        input.classList.add('sum-input');
+                        input.id = `col-${c-1}`;
+                        colInputs[c-1] = input;
+                        cell.appendChild(input);
+                    } 
+                    else if (c === 0) {
+                        // row input (r = 1..4) -> row index r-1
+                        cell.className = 'input-cell';
+                        cell.style.background = 'transparent';
+                        cell.style.boxShadow = 'none';
+                        cell.style.border = 'none';
+                        const input = document.createElement('input');
+                        input.type = 'number';
+                        input.min = 0;
+                        input.max = 30;
+                        input.step = 1;
+                        input.placeholder = 'sum';
+                        input.classList.add('sum-input');
+                        input.id = `row-${r-1}`;
+                        rowInputs[r-1] = input;
+                        cell.appendChild(input);
+                    } 
+                    else {
+                        // actual game cell (r=1..4, c=1..4)  -> row = r-1, col = c-1
+                        const row = r-1;
+                        const col = c-1;
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        cell.classList.add('grid-cell'); // already default
+                        // set appearance based on current state
+                        updateCellAppearance(cell, row, col);
+                        // click listener
+                        cell.addEventListener('click', (event) => {
+                            const r = parseInt(event.currentTarget.dataset.row);
+                            const c = parseInt(event.currentTarget.dataset.col);
+                            toggleRemoved(r, c);
+                        });
+                    }
+                    gridContainer.appendChild(cell);
+                }
+            }
+        }
+
+        // update a single cell's look from state
+        function updateCellAppearance(cellElement, r, c) {
+            if (removed[r][c]) {
+                cellElement.classList.add('removed');
+                cellElement.classList.remove('solved');
+                cellElement.textContent = '✕';
+            } else if (numbers[r][c] !== null) {
+                cellElement.classList.add('solved');
+                cellElement.classList.remove('removed');
+                cellElement.textContent = numbers[r][c];
+            } else {
+                cellElement.classList.remove('removed', 'solved');
+                cellElement.textContent = '';
+            }
+        }
+
+        // re-render all game cells (preserving inputs)
+        function renderGridCells() {
+            const cells = gridContainer.querySelectorAll('.grid-cell[data-row]');
+            cells.forEach(cell => {
+                const r = parseInt(cell.dataset.row);
+                const c = parseInt(cell.dataset.col);
+                updateCellAppearance(cell, r, c);
+            });
+        }
+
+        // toggle removed at (r,c) and clear any solution
+        function toggleRemoved(r, c) {
+            clearNumbers();
+            removed[r][c] = !removed[r][c];
+            renderGridCells();
+        }
+
+        function clearNumbers() {
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    numbers[r][c] = null;
+                }
+            }
+        }
+
+        // reset only cells (removed off, numbers cleared) — sums stay untouched
+        function resetCells() {
+            removed = Array(size).fill().map(() => Array(size).fill(false));
+            numbers = Array(size).fill().map(() => Array(size).fill(null));
+            renderGridCells();
+        }
+
+        // --- solve with current removed and sums ---
+        function solvePuzzle() {
+            // read row sums
+            const rowTarget = rowInputs.map((input, idx) => {
+                const val = input.value.trim();
+                if (val === '') return null;
+                const num = Number(val);
+                return (isNaN(num) || num < 0 || num > 30) ? null : num;
+            });
+            const colTarget = colInputs.map((input, idx) => {
+                const val = input.value.trim();
+                if (val === '') return null;
+                const num = Number(val);
+                return (isNaN(num) || num < 0 || num > 30) ? null : num;
+            });
+
+            // collect empty (non-removed) cells
+            const emptyCells = [];
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (!removed[r][c]) emptyCells.push({r, c});
+                }
+            }
+
+            // quick feasibility: count cells per row/col
+            const cellsPerRow = Array(size).fill(0);
+            const cellsPerCol = Array(size).fill(0);
+            for (let e of emptyCells) {
+                cellsPerRow[e.r]++;
+                cellsPerCol[e.c]++;
+            }
+
+            // validate row sums against possible range
+            for (let i = 0; i < size; i++) {
+                const cnt = cellsPerRow[i];
+                if (rowTarget[i] !== null) {
+                    const minSum = (cnt === 0) ? 0 : (cnt * (cnt + 1)) / 2; // 1+2+...+cnt
+                    const maxSum = (cnt === 0) ? 0 : (cnt * (19 - cnt)) / 2; // 9+8+...+(10-cnt) = cnt*(19-cnt)/2
+                    if (rowTarget[i] < minSum || rowTarget[i] > maxSum) {
+                        alert(`Row ${i+1} sum ${rowTarget[i]} impossible with ${cnt} cell(s) (min ${minSum}–max ${maxSum})`);
+                        return false;
+                    }
+                }
+            }
+            for (let i = 0; i < size; i++) {
+                const cnt = cellsPerCol[i];
+                if (colTarget[i] !== null) {
+                    const minSum = (cnt === 0) ? 0 : (cnt * (cnt + 1)) / 2;
+                    const maxSum = (cnt === 0) ? 0 : (cnt * (19 - cnt)) / 2;
+                    if (colTarget[i] < minSum || colTarget[i] > maxSum) {
+                        alert(`Column ${i+1} sum ${colTarget[i]} impossible with ${cnt} cell(s) (min ${minSum}–max ${maxSum})`);
+                        return false;
+                    }
+                }
+            }
+
+            // backtracking structures
+            const tempGrid = Array(size).fill().map(() => Array(size).fill(null));
+            const rowUsed = Array(size).fill().map(() => Array(10).fill(false)); // digits 1-9
+            const colUsed = Array(size).fill().map(() => Array(10).fill(false));
+
+            // current row sums (partial)
+            const curRowSum = Array(size).fill(0);
+            const curColSum = Array(size).fill(0);
+
+            // order of empty cells (fixed for consistency)
+            const cells = [...emptyCells];
+
+            function canPlace(r, c, d) {
+                if (rowUsed[r][d] || colUsed[c][d]) return false;
+                // partial sum checks with target
+                if (rowTarget[r] !== null && curRowSum[r] + d > rowTarget[r]) return false;
+                if (colTarget[c] !== null && curColSum[c] + d > colTarget[c]) return false;
+                // also check if even with max possible later we can reach target
+                if (rowTarget[r] !== null) {
+                    const remainingCells = cellsPerRow[r] - (curRowSum[r] !== 0 ? 1 : 0) - 1; // rough, but we can use more precise later
+                    // better: we'll just rely on final check; but quick prune: max possible sum for remaining cells
+                    // we can compute maxFuture = sum of largest remaining digits not used yet? That's heavy. 
+                    // we skip heavy prune to keep simple, but add final validation at leaf.
+                }
+                return true;
+            }
+
+            function place(r, c, d) {
+                tempGrid[r][c] = d;
+                rowUsed[r][d] = true;
+                colUsed[c][d] = true;
+                curRowSum[r] += d;
+                curColSum[c] += d;
+            }
+
+            function unplace(r, c, d) {
+                tempGrid[r][c] = null;
+                rowUsed[r][d] = false;
+                colUsed[c][d] = false;
+                curRowSum[r] -= d;
+                curColSum[c] -= d;
+            }
+
+            function backtrack(idx) {
+                if (idx === cells.length) {
+                    // all cells filled: check sums against targets (final)
+                    for (let i = 0; i < size; i++) {
+                        if (rowTarget[i] !== null && curRowSum[i] !== rowTarget[i]) return false;
+                        if (colTarget[i] !== null && curColSum[i] !== colTarget[i]) return false;
+                    }
+                    return true; // solved
+                }
+                const {r, c} = cells[idx];
+                for (let d = 1; d <= 9; d++) {
+                    if (canPlace(r, c, d)) {
+                        place(r, c, d);
+                        if (backtrack(idx + 1)) return true;
+                        unplace(r, c, d);
+                    }
+                }
+                return false;
+            }
+
+            const solved = backtrack(0);
+            if (solved) {
+                // copy to numbers
+                for (let r = 0; r < size; r++) {
+                    for (let c = 0; c < size; c++) {
+                        if (!removed[r][c]) {
+                            numbers[r][c] = tempGrid[r][c];
+                        } else {
+                            numbers[r][c] = null;
+                        }
+                    }
+                }
+                renderGridCells();
+                return true;
+            } else {
+                alert('❌ No valid solution with current removed cells and sums.');
+                return false;
+            }
+        }
+
+        // --- initialise ---
+        buildInterface();
+
+        // get references to all grid cells after building
+        function getRowInputs() {
+            // already filled in buildInterface
+        }
+
+        // wire buttons
+        document.getElementById('solveBtn').addEventListener('click', solvePuzzle);
+        document.getElementById('resetCellsBtn').addEventListener('click', resetCells);
+
+        // initial reset (clears removed and numbers, sums remain empty)
+        resetCells();
+    })();
+</script>
+</body>
+</html>
