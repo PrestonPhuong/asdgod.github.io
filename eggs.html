@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>easter eggs · hunting guide</title>
+  <!-- Font Awesome 6 (free) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f8fafc;
+      color: #0f172a;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      line-height: 1.5;
+      padding: 2rem 1.5rem;
+    }
+
+    body.dark-mode {
+      background-color: #0b1120;
+      color: #e2e8f0;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    /* header / title row */
+    .header-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2.5rem;
+    }
+
+    h1 {
+      font-weight: 600;
+      font-size: 2.2rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(145deg, #1e293b, #334155);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .dark-mode h1 {
+      background: linear-gradient(145deg, #cbd5e1, #f1f5f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h1 i {
+      background: none;
+      -webkit-text-fill-color: currentColor; /* keep gradient for text, icon uses color */
+      color: #eab308;
+      margin-right: 0.3rem;
+    }
+
+    .dark-mode h1 i {
+      color: #fbbf24;
+    }
+
+    /* theme toggle (black/white switch) with fontawesome icons */
+    .theme-switch {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .switch-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+
+    .toggle-checkbox {
+      height: 0;
+      width: 0;
+      visibility: hidden;
+      position: absolute;
+    }
+
+    .toggle-button {
+      cursor: pointer;
+      display: block;
+      text-indent: -9999px;
+      width: 52px;
+      height: 28px;
+      background: #b0c4de;
+      border-radius: 40px;
+      position: relative;
+      transition: 0.2s;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .toggle-button::after {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      line-height: 1;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      /* fontawesome icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      content: "\f185"; /* sun */
+      background: #fff0d0;
+      color: #b85e00;
+    }
+
+    .toggle-checkbox:checked + .toggle-button {
+      background: #2c3e50;
+    }
+
+    .toggle-checkbox:checked + .toggle-button::after {
+      left: calc(100% - 28px);
+      content: "\f186"; /* moon */
+      background: #1e2b3a;
+      color: #fbbf24;
+      box-shadow: 0 1px 4px rgba(255,255,240,0.2);
+    }
+
+    /* section styling */
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin: 2.5rem 0 1.2rem 0;
+      border-bottom: 2px solid #94a3b8;
+      padding-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .dark-mode .section-title {
+      border-bottom-color: #475569;
+    }
+
+    .section-title i {
+      color: #eab308;
+      font-size: 1.8rem;
+    }
+
+    .dark-mode .section-title i {
+      color: #fbbf24;
+    }
+
+    /* optimal settings cards */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.8rem;
+      margin: 1.8rem 0 1rem;
+    }
+
+    .settings-card {
+      background: #ffffffd9;
+      backdrop-filter: blur(2px);
+      border-radius: 24px;
+      padding: 1.6rem 1.4rem;
+      box-shadow: 0 10px 25px -8px rgba(0,0,0,0.1);
+      border: 1px solid #e2e8f0;
+      transition: transform 0.1s ease, background 0.2s;
+    }
+
+    .dark-mode .settings-card {
+      background: #1e293b;
+      border-color: #334155;
+      box-shadow: 0 15px 25px -12px #020617;
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .card-title i {
+      color: #eab308;
+      font-size: 1.6rem;
+    }
+
+    .dark-mode .card-title i {
+      color: #fbbf24;
+    }
+
+    .card-title span {
+      background: #eab308;
+      color: #0f172a;
+      font-size: 0.9rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 30px;
+      font-weight: 500;
+      margin-left: 0.5rem;
+    }
+
+    .dark-mode .card-title span {
+      background: #fbbf24;
+      color: #0b1120;
+    }
+
+    .setting-item {
+      display: flex;
+      align-items: baseline;
+      margin: 0.7rem 0;
+      font-size: 1rem;
+    }
+
+    .setting-key {
+      width: 85px;
+      font-weight: 600;
+      color: #475569;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.03em;
+    }
+
+    .dark-mode .setting-key {
+      color: #9ca3af;
+    }
+
+    .setting-value {
+      flex: 1;
+      font-weight: 500;
+      word-break: break-word;
+      background: #f1f5f9;
+      padding: 0.3rem 0.8rem;
+      border-radius: 30px;
+    }
+
+    .dark-mode .setting-value {
+      background: #0f172a;
+      color: #f1f5f9;
+    }
+
+    /* tables */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 1.8rem 0 2.5rem;
+      border-radius: 20px;
+      background: #ffffffb3;
+      backdrop-filter: blur(2px);
+      box-shadow: 0 8px 20px -8px rgba(0,0,0,0.2);
+    }
+
+    .dark-mode .table-wrapper {
+      background: #1e293b;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      min-width: 500px;
+    }
+
+    th {
+      text-align: left;
+      padding: 1rem 1.2rem;
+      background: #d9e2ef;
+      font-weight: 600;
+      color: #0f172a;
+      font-size: 1rem;
+    }
+
+    .dark-mode th {
+      background: #334155;
+      color: #f8fafc;
+    }
+
+    td {
+      padding: 0.9rem 1.2rem;
+      border-bottom: 1px solid #d1dbe8;
+    }
+
+    .dark-mode td {
+      border-bottom-color: #2d3a4f;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .issue-col {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .egg-name {
+      font-weight: 600;
+      color: #0369a1;
+    }
+
+    .dark-mode .egg-name {
+      color: #7dd3fc;
+    }
+
+    .requirement {
+      color: #2d3c4f;
+    }
+
+    .dark-mode .requirement {
+      color: #cbd5e1;
+    }
+
+    .category-badge {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1e3a8a;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      margin-left: 0.5rem;
+      font-weight: 500;
+    }
+
+    .dark-mode .category-badge {
+      background: #1e3a5f;
+      color: #bfdbfe;
+    }
+
+    footer {
+      text-align: center;
+      opacity: 0.7;
+      font-size: 0.85rem;
+      margin-top: 4rem;
+      border-top: 1px dashed #94a3b8;
+      padding-top: 2rem;
+    }
+
+    footer i {
+      color: #eab308;
+      margin-right: 0.2rem;
+    }
+  </style>
+</head>
+<body class="light-mode">
+  <div class="container">
+
+    <!-- header with toggle -->
+    <div class="header-row">
+      <h1><i class="fas fa-egg"></i>Easter eggs hunting guide</h1>
+      <div class="theme-switch">
+        <span class="switch-label">light</span>
+        <input type="checkbox" id="themeToggle" class="toggle-checkbox">
+        <label for="themeToggle" class="toggle-button">toggle</label>
+        <span class="switch-label">dark</span>
+      </div>
+    </div>
+
+    <!-- optimal settings (presets) with fontawesome icons -->
+    <div class="section-title"><i class="fas fa-gear"></i>Settings</div>
+    <div class="settings-grid">
+      <!-- no e egg card -->
+      <div class="settings-card">
+        <div class="card-title"><i class="fas fa-ban"></i>'E' egg <span>no e</span></div>
+        <div class="setting-item"><span class="setting-key">Motto</span><span class="setting-value">a</span></div>
+        <div class="setting-item"><span class="setting-key">Pretitle</span><span class="setting-value">a</span></div>
+        <div class="setting-item"><span class="setting-key">Leader</span><span class="setting-value">a</span></div>
+        <div class="setting-item"><span class="setting-key">Animal</span><span class="setting-value">a</span></div>
+        <div class="setting-item"><span class="setting-key">Currency</span><span class="setting-value">a</span></div>
+        <div class="setting-item"><span class="setting-key">Religion</span><span class="setting-value">a</span></div>
+        <div class="setting-item"><span class="setting-key">Capital</span><span class="setting-value">a</span></div>
+        <div class="setting-item"><span class="setting-key">Demonym</span><span class="setting-value">a</span></div>
+      </div>
+
+      <!-- all year card -->
+      <div class="settings-card">
+        <div class="card-title"><i class="fas fa-calendar-alt"></i>All year <span>multi-egg</span></div>
+        <div class="setting-item"><span class="setting-key">Motto</span><span class="setting-value">Moon friendship brains NationStates</span></div>
+        <div class="setting-item"><span class="setting-key">Pretitle</span><span class="setting-value">Pink Holy</span></div>
+        <div class="setting-item"><span class="setting-key">Leader</span><span class="setting-value">Dracula</span></div>
+        <div class="setting-item"><span class="setting-key">Animal</span><span class="setting-value">Bat</span></div>
+        <div class="setting-item"><span class="setting-key" style="opacity:0.5;">(others unchanged)</span><span class="setting-value"></span></div>
+      </div>
+
+      <!-- events eggs card -->
+      <div class="settings-card">
+        <div class="card-title"><i class="fas fa-tree"></i>Events <span>seasonal</span></div>
+        <div class="setting-item"><span class="setting-key">Currency</span><span class="setting-value">gold bars</span></div>
+        <div class="setting-item"><span class="setting-key">Animal</span><span class="setting-value">reindeer</span></div>
+        <div class="setting-item"><span class="setting-key">Capital</span><span class="setting-value">North Pole</span></div>
+        <div class="setting-item"><span class="setting-key">Pretitle</span><span class="setting-value">Christmas</span></div>
+        <div class="setting-item"><span class="setting-key">Leader</span><span class="setting-value">Santa Claus</span></div>
+      </div>
+    </div>
+
+    <!-- tables from JSON -->
+    <div class="section-title"><i class="fas fa-clipboard-list"></i>Tables </div>
+
+    <!-- time-based -->
+    <div class="table-wrapper">
+      <table id="timeBasedTable">
+        <thead><tr><th>issue</th><th>egg name</th><th>requirement</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- population-based -->
+    <div class="table-wrapper">
+      <table id="populationBasedTable">
+        <thead><tr><th>issue</th><th>egg name</th><th>requirement</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- settings-only / other eggs -->
+    <div class="table-wrapper">
+      <table id="settingsOnlyTable">
+        <thead><tr><th>issue</th><th>egg name</th><th>requirement</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <footer><i class="fas fa-leaf"></i> Endorse Brilish on NationStates</footer>
+  </div>
+
+  <script>
+    (function() {
+      // --- JSON data ---
+      const eggData = {
+        "time_based": [
+          { "issue": 375, "name": "St. Patrick's Day Egg", "requirement": "Available only in March; currency must be 'gold bar'" },
+          { "issue": 471, "name": "Christmas Egg", "requirement": "Available only in December; Christmas-themed custom fields required" }
+        ],
+        "population_based": [
+          { "issue": 78, "name": "Holy Egg", "requirement": "Pretitle contains 'Holy'; population ≥ 1.25 billion" },
+          { "issue": 1122, "name": "No 'E' Egg", "requirement": "No letter 'E' in any custom field; population ≥ 1 billion" }
+        ],
+        "settings_only": [
+          { "issue": 80, "name": "Alien Egg", "requirement": "Motto contains 'moo' or 'Moon' OR animal is cow with pizza industry > 0" },
+          { "issue": 215, "name": "Colour Egg", "requirement": "Pretitle contains a recognized color" },
+          { "issue": 223, "name": "Zombie Egg", "requirement": "Motto contains 'brains' OR nation ceased to exist and resurrected" },
+          { "issue": 256, "name": "Crime Egg", "requirement": "Crime ≥ 16.75 and space program active" },
+          { "issue": 266, "name": "Fourth Wall Egg", "requirement": "Motto contains 'NationStates'" },
+          { "issue": 408, "name": "Pony Egg", "requirement": "Motto contains 'friendship'" },
+          { "issue": 430, "name": "Issue Egg", "requirement": "Answer 250–300+ issues and have at least 1 Easter Egg" },
+          { "issue": 622, "name": "Halloween Egg", "requirement": "Halloween-themed leader and national animal (e.g., Dracula, Bat)" },
+          { "issue": 77, "name": "World To End Egg", "requirement": "Have found at least 3 other Easter Eggs" }
+        ]
+      };
+
+      // helper: populate table
+      function populateTable(tbodyId, eggsArray) {
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        eggsArray.forEach(egg => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="issue-col">#${egg.issue}</td>
+            <td class="egg-name">${egg.name}</td>
+            <td class="requirement">${egg.requirement}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // clear and populate all three tables
+      const timeTbody = document.querySelector('#timeBasedTable tbody');
+      const popTbody = document.querySelector('#populationBasedTable tbody');
+      const settingsTbody = document.querySelector('#settingsOnlyTable tbody');
+
+      if (timeTbody) timeTbody.innerHTML = '';
+      if (popTbody) popTbody.innerHTML = '';
+      if (settingsTbody) settingsTbody.innerHTML = '';
+
+      populateTable('timeBasedTable', eggData.time_based);
+      populateTable('populationBasedTable', eggData.population_based);
+      populateTable('settingsOnlyTable', eggData.settings_only);
+
+      // --- theme toggle logic (black/white) ---
+      const toggle = document.getElementById('themeToggle');
+      const body = document.body;
+
+      // set initial state (light mode default)
+      body.classList.add('light-mode');
+      body.classList.remove('dark-mode');
+
+      toggle.addEventListener('change', function(e) {
+        if (this.checked) {
+          body.classList.add('dark-mode');
+          body.classList.remove('light-mode');
+        } else {
+          body.classList.add('light-mode');
+          body.classList.remove('dark-mode');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
