@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bank of Brilish - Headquarter </title>
+  <title>Bank of Brilish - Headquarter</title>
   <!-- Font Awesome 6 (free) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
@@ -46,10 +46,10 @@
     /* card grid – responsive grid, fills full width */
     .card-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* wider min to fit big icons */
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 2.5rem 2rem;
       width: 100%;
-      max-width: 1600px;        /* allow extra width for huge icons */
+      max-width: 1600px;
       margin: 1.5rem auto 0;
       justify-items: center;
       align-items: end;
@@ -70,17 +70,53 @@
       transform: translateY(-6px);
     }
 
-    /* mastercard icon  */
+    /* mastercard icon – base style */
     .account-card i {
-      font-size: clamp(9rem, 15vw, 13rem);  
+      font-size: clamp(9rem, 15vw, 13rem);
       filter: drop-shadow(0 12px 20px #00000080);
       transition: transform 0.2s;
       line-height: 1;
+      /* prepare for gradient text if needed */
+      display: inline-block;
     }
 
     .account-card:hover i {
       transform: scale(1.02);
     }
+
+    /* type: gold – warm gradient */
+    .account-card[data-type="gold"] i {
+      background: linear-gradient(135deg, #f9e076, #d4af37, #b8860b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* type: ruby – rich red gradient */
+    .account-card[data-type="ruby"] i {
+      background: linear-gradient(135deg, #ff6b6b, #e0115f, #9b1d2c);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* type: infinite – cosmic deep purple / blue */
+    .account-card[data-type="infinite"] i {
+      background: linear-gradient(135deg, #8e2de2, #4a00e0, #1e0b4d);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* type: antimatter – dark with neon edge */
+    .account-card[data-type="antimatter"] i {
+      background: radial-gradient(circle at 30% 30%, #a5f0ff, #2b0057, #0a0014);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* silver: no extra style – inherits white from body */
 
     /* container for money and name – flex column */
     .account-info {
@@ -194,11 +230,6 @@
       transform: scale(0.97);
     }
 
-    /* remove white wash – let mastercard colors shine */
-    .fa-cc-mastercard {
-      color: inherit; 
-    }
-
     /* adjust for smaller screens */
     @media (max-width: 600px) {
       h1 {
@@ -206,17 +237,17 @@
       }
       .card-grid {
         gap: 1.5rem 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* smaller min on narrow screens */
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       }
       .account-card i {
-        font-size: clamp(6rem, 12vw, 9rem); /* slightly reduced but still huge */
+        font-size: clamp(6rem, 12vw, 9rem);
       }
     }
   </style>
 </head>
 <body>
   <h1>
-    <i class="fa-regular fa-building"></i> 
+    <i class="fa-solid fa-vault"></i> 
     Bank of Brilish
   </h1>
 
@@ -235,6 +266,10 @@
         <span class="detail-label"><i class="fa-regular fa-calendar"></i> opened</span>
         <span class="detail-value" id="detailDate">---</span>
       </div>
+      <div class="detail-row">
+        <span class="detail-label"><i class="fa-regular fa-gem"></i> CC type</span>
+        <span class="detail-value" id="detailType">---</span>
+      </div>
       <div class="close-btn">
         <button id="closeOverlayBtn"><i class="fa-regular fa-circle-xmark" style="margin-right: 6px;"></i>close</button>
       </div>
@@ -244,15 +279,16 @@
   <script>
     (function() {
       const accounts = [
-        { name: 'Brilish',     id: 'ADMN',  date: '2026-03-12', money: 0.00 },
-		{ name: 'Aerilia',     id: 'AERL',  date: '2026-03-14', money: 0.975 },	
-        { name: 'BorkMaster',     id: 'BORK',  date: '2026-03-12', money: 0.00 },		
+        { name: 'Brilish',    id: 'ADMN', date: '2026-03-12', money: 100.00,  type: 'gold' },
+        { name: 'Aerilia',    id: 'AERL', date: '2026-03-14', money: 0.975, type: 'silver' },
+        { name: 'BorkMaster', id: 'BORK', date: '2026-03-12', money: 0.00,  type: 'silver' },
       ];
 
       const container = document.getElementById('accountContainer');
       const overlay = document.getElementById('detailsOverlay');
       const detailIdSpan = document.getElementById('detailId');
       const detailDateSpan = document.getElementById('detailDate');
+      const detailTypeSpan = document.getElementById('detailType');
       const closeBtn = document.getElementById('closeOverlayBtn');
 
       accounts.forEach(acc => {
@@ -260,6 +296,8 @@
         card.className = 'account-card';
         card.dataset.accountId = acc.id;
         card.dataset.accountDate = acc.date;
+        card.dataset.accountType = acc.type || 'silver';   // default to silver
+        card.setAttribute('data-type', acc.type || 'silver'); // for CSS styling
 
         const icon = document.createElement('i');
         icon.className = 'fa-brands fa-cc-mastercard';
@@ -283,6 +321,7 @@
         card.addEventListener('click', () => {
           detailIdSpan.textContent = card.dataset.accountId;
           detailDateSpan.textContent = card.dataset.accountDate;
+          detailTypeSpan.textContent = card.dataset.accountType;
           overlay.classList.add('active');
         });
 
